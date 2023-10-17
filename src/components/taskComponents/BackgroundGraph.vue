@@ -8,18 +8,18 @@
 <script>
 import { onMounted, computed } from "vue";
 import ContourPlot from "@/components/taskComponents/ContourPlot.vue";
-import DOTGraph from "@/components/taskComponents/DOTGraph.vue";
+import DOTGraph from "@/components/taskComponents/DOTGraph/DOTGraph.vue";
 
 export default {
   props: {
     componentID: Number,
-    storeObject: Object,
+    storeObject: Object
   },
   components: {
     DOTGraph,
-    ContourPlot,
+    ContourPlot
   },
-  setup(props) {},
+  setup(props) {}
 };
 </script>
 

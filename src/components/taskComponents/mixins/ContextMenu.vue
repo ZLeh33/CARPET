@@ -58,7 +58,7 @@ export default {
 <style scoped>
 .wrapper {
   position: absolute;
-  width: 100%;
+  width: inherit;
   height: 100%;
 }
 

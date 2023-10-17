@@ -4,7 +4,14 @@
     <div class="replay" @mouseenter="fadeControlsIn" @mouseleave="fadeControlsOut">
       <div class="progressBar" @click="jumpHandler">
         <div class="progress"></div>
-        <div :class="`marker__${i} marker`" :style="placeMarker(i)" v-for="(marker, i) in replayGraph.steps" :key="marker.timestamp">|</div>
+        <div
+          :class="`marker__${i} marker`"
+          :style="placeMarker(i)"
+          v-for="(marker, i) in replayGraph.steps"
+          :key="marker.timestamp"
+        >
+          |
+        </div>
       </div>
       <div class="controlElements">
         <Button class="playButton" :callback="startStopHandler" :label="'&#9658;'" />
@@ -22,7 +29,7 @@ export default {
   name: "ReplayOverlay",
   props: {
     replayStore: Object,
-    taskStore: Object,
+    taskStore: Object
   },
   components: { Button },
   setup(props) {
@@ -217,7 +224,7 @@ export default {
         "edges",
         "nodes",
         "taskData",
-        "taskReplay",
+        "taskReplay"
       ];
 
       properties.forEach((property) => {
@@ -240,7 +247,7 @@ export default {
           propertyValue = timeCorrectedReplay;
         }
         props.taskStore.setProperty({ path: property, value: propertyValue });
-        props.taskStore.store.dispatch("restoredFromReplay");
+        props.taskStore.store.dispatch("setRestoredFromReplay");
       });
 
       router.push({ name: "Task", params: { task } });
@@ -260,7 +267,7 @@ export default {
     };
 
     return { replayGraph, jumpHandler, startStopHandler, placeMarker, enterTask, fadeControlsIn, fadeControlsOut };
-  },
+  }
 };
 </script>
 

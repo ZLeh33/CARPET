@@ -71,7 +71,7 @@ export function debounce(callback: Function, interval: number = 150) {
   };
 }
 
-const pollGraphRender = (selector, fn) => {
+const pollGraphRender = (selector: string, fn: Function) => {
   let nodes = document.querySelectorAll(selector);
   const pollGraph = setInterval(() => {
     nodes = document.querySelectorAll(selector);
@@ -83,4 +83,16 @@ const pollGraphRender = (selector, fn) => {
   }, 500);
 };
 
-export { isEqualArrayContent, delay, pollGraphRender };
+const pollDOMElementRender = (selector: string, fn: Function, interval: number = 500) => {
+  let nodes = document.querySelectorAll(selector);
+  const pollDOMElement = setInterval(() => {
+    nodes = document.querySelectorAll(selector);
+
+    if (nodes.length) {
+      clearInterval(pollDOMElement);
+      fn();
+    }
+  }, interval);
+};
+
+export { isEqualArrayContent, delay, pollGraphRender, pollDOMElementRender };

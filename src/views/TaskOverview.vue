@@ -65,6 +65,7 @@ export default {
     onBeforeMount(() => {
       taskOverviewStore.dispatch("fetchTasks");
       taskStore.dispatch("resetStore");
+      // taskStore.$reset();
     });
 
     onMounted(() => {

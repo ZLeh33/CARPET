@@ -85,6 +85,13 @@ export interface IReplay {
   zooming?: Array<any>;
   meta: { [key: string]: any };
 }
+export interface Replay {
+  steps: Array<any>;
+  mouse: Array<any>;
+  panning: Array<any>;
+  zooming: Array<any>;
+  meta: { [key: string]: any };
+}
 
 export interface IInterjection {
   dependencies: { [dependencyName: string]: taskGraphPath | number };
@@ -116,16 +123,49 @@ interface IState {
   edges: IEdges;
   currentNode: number;
   nodes: INodes;
-  taskReplay?: IReplay;
+  taskReplay: Replay;
+  restoredFromReplay?: boolean;
+}
+export interface State {
+  isLoading: boolean;
+  previousNode: number | null;
+  rootNode: number | null;
+  taskMode: string | null;
+  currentTask: string | null;
+  layoutSize: string;
+  taskData: { [key: string]: any };
+  topology: Array<Array<number>>;
+  edges: IEdges;
+  currentNode: number | null;
+  nodes: INodes;
+  taskReplay: Replay;
   restoredFromReplay?: boolean;
 }
 interface IMethodsDefinition {
-  [key:string] : {"description": string, "impact": number}
+  [methodName: string]: { description: string; impact: number };
 }
 
 interface IMethodImplementations {
-    [key:string] : Function
+  [key: string]: Function;
 }
 
 export type { IState, IComponent, IMethodsDefinition, IMethodImplementations };
 
+export type TaskComponentType = string;
+export interface SerializedTaskComponent {
+  type: TaskComponentType;
+  name: string;
+  isValid: boolean;
+  isCorrect: boolean;
+  methods: IMethodsDefinition;
+  contextMenu?: {
+    isOpen: boolean;
+    usedMethods: Array<string>;
+  };
+  dependencies: {
+    [dependencyName: string]: any;
+  };
+  nestedComponents?: {
+    [key: string]: SerializedTaskComponent;
+  };
+}

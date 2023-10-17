@@ -6,13 +6,13 @@
 
 <script lang="ts">
 import { onMounted, computed } from "vue";
-import DOTGraph from "@/components/taskComponents/DOTGraph.vue";
+import DOTGraph from "@/components/taskComponents/DOTGraph/DOTGraph.vue";
 
 export default {
   components: { DOTGraph },
   props: {
     componentID: Number,
-    storeObject: Object,
+    storeObject: Object
   },
   setup(props) {
     const { getProperty, setProperty } = props.storeObject;
@@ -81,7 +81,7 @@ export default {
     };
 
     return {};
-  },
+  }
 };
 </script>
 

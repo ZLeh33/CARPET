@@ -34,7 +34,17 @@ export const matrixSelfMultiplication = (
     clonedMatrix.dependencies.Matrix.data1 = `nodes__${currentNodeId}__components__${rightMatrixId}__component__userData`;
     clonedMatrix.isValid = false;
     clonedMatrix.component.readOnly = false;
-    clonedMatrix.methods = { fillZeros: "Ergänze Nullen", showSolution: "Zeige Lösung", copyToClipboard: "Kopieren" };
+    clonedMatrix.methods = {
+      fillZeros: { description: "Ergänze Nullen", impact: 0.5 },
+      showSolution: {
+        description: "Zeige Lösung",
+        impact: 0
+      },
+      copyToClipboard: {
+        description: "Kopieren",
+        impact: 1
+      }
+    };
     clonedMatrix.component.initialize.solution.operations = [{ name: "multiply", args: ["chain"] }];
     clonedMatrix.component.initialize.solution.paths = [
       `nodes__${currentNodeId}__components__${leftMatrixId}__component__userData`,
@@ -64,7 +74,17 @@ export const matrixSelfMultiplication = (
     clonedMatrix.name = "Gesamtbedarfsmatrix";
     clonedMatrix.isValid = false;
     clonedMatrix.component.readOnly = false;
-    clonedMatrix.methods = { fillZeros: "Ergänze Nullen", showSolution: "Zeige Lösung", copyToClipboard: "Kopieren" };
+    clonedMatrix.methods = {
+      fillZeros: { description: "Ergänze Nullen", impact: 0.5 },
+      showSolution: {
+        description: "Zeige Lösung",
+        impact: 0
+      },
+      copyToClipboard: {
+        description: "Kopieren",
+        impact: 1
+      }
+    };
     clonedMatrix.component.initialize.solution.operations = Array(n + 1)
       .fill(null)
       .map(() => ({ name: "add", args: ["chain"] }));

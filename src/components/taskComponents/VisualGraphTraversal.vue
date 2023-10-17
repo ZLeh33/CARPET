@@ -6,14 +6,14 @@
 
 <script lang="ts">
 import { onMounted, computed } from "vue";
-import DOTGraph from "@/components/taskComponents/DOTGraph.vue";
+import DOTGraph from "@/components/taskComponents/DOTGraph/DOTGraph.vue";
 import { isEqualArrayContent } from "@/helpers/HelperFunctions.ts";
 
 export default {
   components: { DOTGraph },
   props: {
     componentID: Number,
-    storeObject: Object,
+    storeObject: Object
   },
   setup(props) {
     // TODO refactor component and remove implicit side effects/pass arguments explicitly
@@ -96,7 +96,9 @@ export default {
         colorCodePaths(colorCoding.completed, selectedEdgeElements);
         selectedEdgeElements.forEach((selectedEdgeElement) => {
           const { parentNode, childNode } = unwrapEdgeElement(selectedEdgeElement);
-          const key = reverseEdges ? `${[nodes[childNode].id, nodes[parentNode].id]}` : `${[nodes[parentNode].id, nodes[childNode].id]}`;
+          const key = reverseEdges
+            ? `${[nodes[childNode].id, nodes[parentNode].id]}`
+            : `${[nodes[parentNode].id, nodes[childNode].id]}`;
           if (Object.keys(reoccurringEdges).includes(key) && reoccurringEdges[key] != 0) {
             reoccurringEdges[key] -= 1;
             if (reoccurringEdges[key] === 0) {
@@ -184,7 +186,7 @@ export default {
     };
 
     return {};
-  },
+  }
 };
 </script>
 

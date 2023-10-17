@@ -1,21 +1,18 @@
 <template>
   <ContextMenu :componentId="id" :methods="selectedMethods" :storeObject="storeObject">
     <div class="editableGraph">
-      <DOTGraph :componentID="componentID" :storeObject="storeObject" />
+      <DOTGraph :componentID="componentID" :storeObject="storeObject" :componentPath="componentPath" />
     </div>
   </ContextMenu>
 </template>
 
 <script lang="ts" setup>
 import { onMounted, onUnmounted, computed } from "vue";
-import DOTGraph from "@/components/taskComponents/DOTGraph.vue";
+import DOTGraph from "@/components/taskComponents/DOTGraph/DOTGraph.vue";
 import ContextMenu from "@/components/taskComponents/mixins/ContextMenu.vue";
 import { pollGraphRender } from "@/helpers/HelperFunctions";
-<<<<<<< HEAD
+import { getSelectedMethods } from "@/helpers/getSelectedMethods";
 import type { ComponentProps } from "@/interfaces/ComponentInterface";
-=======
-import {getSelectedMethods} from "@/helpers/getSelectedMethods";
->>>>>>> 26e34591a0f242b9d5b7b3d09c42bd58bc5c72f8
 
 const props = defineProps<ComponentProps>();
 
@@ -23,6 +20,8 @@ const { getProperty, setProperty } = props.storeObject;
 const currentNode = getProperty("currentNode");
 const path = `nodes__${currentNode}__components__${props.componentID}`;
 const dependencies = getProperty(`${path}__dependencies`);
+
+const componentPath = `nodes__${currentNode}__components__${props.componentID}__nestedComponents__DOTGraph`;
 
 const userValues = computed(() => getProperty(`${path}__component__userValues`));
 if (!userValues.value)
@@ -104,6 +103,45 @@ const validate = () => {
   });
 };
 
+// const methods = {
+//   showSolution: () => {
+//     // manually remove old svg, since foreignObjects might cause issues with the rerender
+//     Array.from(document.querySelectorAll(selectors)).forEach((node) => node.removeEventListener("click", editSVGText));
+//     const svg = document.querySelector(".dotGraph svg");
+//     const dotGraph = getProperty(dependencies.DOTGraph.dotDescription);
+//     const solution = getProperty(dependencies.EditableGraph.solution);
+//     if (svg && dotGraph != solution) document.querySelector(".dotGraph")?.removeChild(svg);
+
+//     setProperty({ path: dependencies.DOTGraph.dotDescription, value: solution });
+
+//     pollGraphRender(".editableGraph .node", assignEventHandlers);
+//     setProperty({
+//       path: `${path}__isValid`,
+//       value: true
+//     });
+
+//     const validate = () => {
+//       const nodes = getProperty(dependencies.EditableGraph.validation);
+//       const isValid = nodes.every((node) => {
+//         const { id } = node;
+//         // TODO make editableFields Array of keys again and create replica of nodes for userValue to record changes in VUEX state and add node id to handler
+//         // create deep watcher to extract the changed key<->value in new/old Value of watcher
+//         // move assignment logic of textfield from the editSVGText-handler to watcher
+//         return editableFields.every((field) => {
+//           const correctValue = node[field];
+//           const userValue = document.querySelector(`g.node[id="${id}"] g[id="a_${field}"] text`).textContent.trim();
+//           return userValue == correctValue;
+//         });
+//       });
+
+//       setProperty({
+//         path: `${path}__isValid`,
+//         value: isValid
+//       });
+//     };
+
+//   }
+
 const methods = {
   showSolution: () => {
     // manually remove old svg, since foreignObjects might cause issues with the rerender
@@ -111,7 +149,7 @@ const methods = {
     const svg = document.querySelector(".dotGraph svg");
     const dotGraph = getProperty(dependencies.DOTGraph.dotDescription);
     const solution = getProperty(dependencies.EditableGraph.solution);
-    if (svg && dotGraph != solution) document.querySelector(".dotGraph")?.removeChild(svg);
+    if (svg && dotGraph != solution) document.querySelector(".dotGraph").removeChild(svg);
 
     setProperty({ path: dependencies.DOTGraph.dotDescription, value: solution });
 
@@ -120,53 +158,9 @@ const methods = {
       path: `${path}__isValid`,
       value: true
     });
-
-    const validate = () => {
-      const nodes = getProperty(dependencies.EditableGraph.validation);
-      const isValid = nodes.every((node) => {
-        const { id } = node;
-        // TODO make editableFields Array of keys again and create replica of nodes for userValue to record changes in VUEX state and add node id to handler
-        // create deep watcher to extract the changed key<->value in new/old Value of watcher
-        // move assignment logic of textfield from the editSVGText-handler to watcher
-        return editableFields.every((field) => {
-          const correctValue = node[field];
-          const userValue = document.querySelector(`g.node[id="${id}"] g[id="a_${field}"] text`).textContent.trim();
-          return userValue == correctValue;
-        });
-      });
-
-      setProperty({
-        path: `${path}__isValid`,
-        value: isValid,
-      });
-    };
-
-    const methods = {
-      showSolution: () => {
-        // manually remove old svg, since foreignObjects might cause issues with the rerender
-        Array.from(document.querySelectorAll(selectors)).forEach((node) => node.removeEventListener("click", editSVGText));
-        const svg = document.querySelector(".dotGraph svg");
-        const dotGraph = getProperty(dependencies.DOTGraph.dotDescription);
-        const solution = getProperty(dependencies.EditableGraph.solution);
-        if (svg && dotGraph != solution) document.querySelector(".dotGraph").removeChild(svg);
-
-        setProperty({ path: dependencies.DOTGraph.dotDescription, value: solution });
-
-        pollGraphRender(".editableGraph .node", assignEventHandlers);
-        setProperty({
-          path: `${path}__isValid`,
-          value: true,
-        });
-      },
-    };
-    const selectedMethods = getSelectedMethods(getProperty(`${path}__methods`), methods);
-
-    return {
-      selectedMethods: selectedMethods,
-      id: props.componentID,
-    };
-  },
+  }
 };
+const selectedMethods = getSelectedMethods(getProperty(`${path}__methods`), methods);
 </script>
 
 <style scoped>

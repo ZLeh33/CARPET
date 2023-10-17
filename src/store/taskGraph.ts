@@ -67,18 +67,28 @@ const mutations = {
   },
   SET_PROPERTY(state: IState, payload: { path: string; value: any }) {
     const { path, value } = payload;
+    if (typeof path !== "string") {
+      throw new Error(`Path is not a string: ${path}`);
+    }
+
     const splitPath = path.split("__");
 
-    // for debugging purposes
-    console.log(path, value);
-
-    // save state on every mutation as a side effect for task replay
-    state.taskReplay.steps.push({ timestamp: new Date().getTime(), ...JSON.parse(JSON.stringify(payload)) });
-
     let subState = state;
+    let changingState = false;
     for (let depth = 0; depth < splitPath.length; depth++) {
-      if (depth === splitPath.length - 1) subState[splitPath[depth]] = value;
-      else subState = subState[splitPath[depth]];
+      if (depth === splitPath.length - 1) {
+        if (subState[splitPath[depth]] != value) {
+          subState[splitPath[depth]] = value;
+          changingState = true;
+        }
+      } else subState = subState[splitPath[depth]];
+    }
+
+    // save state on every mutation as a side effect for task replay - if a change was recorded
+    if (changingState) {
+      console.log(path, value);
+      // for debugging purposes
+      state.taskReplay.steps.push({ timestamp: new Date().getTime(), ...JSON.parse(JSON.stringify(payload)) });
     }
 
     // old inperformant way
@@ -117,7 +127,7 @@ const actions = {
     const hash = await axios.post("/api/storeReplay", { replay: JSON.stringify(replay) });
     console.log(hash);
   },
-  restoredFromReplay: async ({ commit }) => {
+  setRestoredFromReplay: async ({ commit }) => {
     commit("RESTORED_FROM_REPLAY");
   },
   resetStore: async ({ commit }) => {
@@ -157,16 +167,38 @@ const actions = {
 };
 const getters = {
   getPropertyFromPath: (state: IState) => (path: string) => {
+    if (typeof path !== "string") {
+      throw new Error(`Path is not a string: ${path}`);
+    }
     const splitPath = path.split("__");
+
     return splitPath.reduce((value, key) => {
       if (value && Object.keys(value).includes(key)) return value[key];
       else if (value) {
         return null;
       } else {
-        throw new Error(`Property not found in store: ${key}, ${value}`);
+        throw new Error(`Property not found in store: ${key}, ${value}, ${path}`);
       }
     }, state);
   }
+};
+
+export const ensurePathExists = (path: string) => {
+  if (typeof path !== "string") {
+    throw new Error(`Path is not a string: ${path}`);
+  }
+  const splitPath = path.split("__");
+  let subState = state;
+  let pathIsValid = true;
+  for (let depth = 0; depth < splitPath.length; depth++) {
+    if (splitPath[depth] in subState) {
+      subState = subState[splitPath[depth]];
+    } else {
+      pathIsValid = false;
+      break;
+    }
+  }
+  return pathIsValid;
 };
 
 export const taskStore = createStore<IState>({

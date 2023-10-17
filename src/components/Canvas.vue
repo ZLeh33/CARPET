@@ -10,7 +10,7 @@
     <div class="zoomWrapper">
       <grid-layout
         class="grid"
-        v-model="currentLayout"
+        v-model:layout="currentLayout"
         :col-num="columnAmount"
         :row-height="rowHeight"
         :is-draggable="true"
@@ -20,8 +20,12 @@
         :prevent-collision="true"
         @breakpoint-changed="() => {}"
         :key="layoutSize"
+        :transform-scale="zoomScale"
+        :is-bounded="true"
+        :restore-on-drag="true"
       >
         <grid-item
+          class="noPan"
           v-for="item in currentLayout"
           :key="nodeComponentIds[item.i]"
           :static="item.static"
@@ -29,21 +33,21 @@
           :y="item.y"
           :w="item.w"
           :h="item.h"
+          :minW="item.minW ?? 1"
+          :minH="item.minH ?? 1"
           :i="nodeComponentIds[item.i]"
-          :scale="zoomScale"
-          drag-allow-from=".dragHandler"
-          drag-ignore-from=".ignoreDrag"
+          :drag-allow-from="`.${CONSTANTS.DRAGELEMENTCLASS}`"
           @move="setCoordinates"
-          @resized="updateDimensions"
-          :preserveAspectRatio="true"
-          :autosize="true"
+          @resize="updateDimensions"
+          :preserveAspectRatio="item.preserveAspectRatio ?? true"
           :data-id="nodeComponentIds[item.i]"
         >
-          <img class="dragHandler" src="/img/drag_arrow.webp" />
+          <img class="dragHandler" :class="CONSTANTS.DRAGELEMENTCLASS" src="/img/drag_arrow.webp" />
           <component
             :is="nodeComponents[nodeComponentIds[item.i]].type"
             :componentID="parseInt(nodeComponentIds[item.i])"
             :storeObject="storeObject"
+            :componentPath="`nodes__${currentNode}__components__${parseInt(nodeComponentIds[item.i])}`"
           ></component>
         </grid-item>
       </grid-layout>
@@ -53,9 +57,10 @@
 
 <script lang="ts">
 import { onMounted, computed } from "vue";
-import { GridLayout, GridItem } from "vue-grid-layout";
+import { GridLayout, GridItem } from "grid-layout-plus";
 import panzoom from "@panzoom/panzoom";
 import { interjectionHandler } from "@/interjections/interjectionHandler";
+import { CONSTANTS } from "@/CARPET_config";
 
 import MiniMap from "@/components/MiniMap.vue";
 import Navigation from "@/components/Navigation.vue";
@@ -64,7 +69,7 @@ import TextArea from "@/components/TextArea.vue";
 import Modal from "@/components/Modal.vue";
 
 import Matrix from "@/components/taskComponents/math/LinearAlgebra/Matrix.vue";
-import DOTGraph from "@/components/taskComponents/DOTGraph.vue";
+import DOTGraph from "@/components/taskComponents/DOTGraph/DOTGraph.vue";
 import TaskConfiguration from "@/components/taskComponents/TaskConfiguration.vue";
 import VisualGraphTraversal from "@/components/taskComponents/VisualGraphTraversal.vue";
 import PathDisplay from "@/components/taskComponents/PathDisplay.vue";
@@ -80,11 +85,14 @@ import DijkstraGraph from "@/components/taskComponents/dijkstra/DijkstraGraph.vu
 import PlanGraph from "@/components/taskComponents/scheduling/PlanGraph.vue";
 import EditableGraph from "@/components/taskComponents/EditableGraph.vue";
 import GanttDiagram from "@/components/taskComponents/scheduling/GanttDiagram.vue";
-import DnDContainer from "@/components/taskComponents/DragDrop/DnDContainer.vue";
+import ManipulatableGraph from "@/components/taskComponents/ManipulatableGraph/ManipulatableGraph.vue";
+import ItemPallet from "@/components/taskComponents/DragDrop/ItemPallet/ItemPallet.vue";
 
 export default {
   name: "Canvas",
   components: {
+    ItemPallet,
+    ManipulatableGraph,
     BackgroundGraph,
     ContourPlot,
     MiniMap,
@@ -108,8 +116,7 @@ export default {
     Modal,
     PlanGraph,
     EditableGraph,
-    GanttDiagram,
-    DnDContainer
+    GanttDiagram
   },
   props: {
     storeObject: Object
@@ -146,78 +153,74 @@ export default {
       if (!document.querySelector(".contourPlot")) return;
       setTimeout(() => {
         ids.forEach((id) => {
-          const item: HTMLElement = document.querySelector(`.vue-grid-item[data-id="${id}"]`);
+          const item: HTMLElement = document.querySelector(`.vgl-item[data-id="${id}"]`);
           item.style.height = item.style.width;
         });
       }, 75);
     };
 
-    let panzoomInstance = null;
     onMounted(() => {
-      panzoomInstance = panzoom(<HTMLElement>document.querySelector(".zoomWrapper"), {
-        excludeClass: "vue-grid-item",
+      const zoomElement = <HTMLElement>document.querySelector(".zoomWrapper");
+      const canvas = <HTMLElement>document.querySelector(".canvas");
+
+      const panzoomInstance = panzoom(zoomElement, {
+        excludeClass: "noPan",
         canvas: true,
-        contain: "outside",
         startX: -(<HTMLElement>document.querySelector(".zoomWrapper")).clientWidth / 2,
         startY: -(<HTMLElement>document.querySelector(".zoomWrapper")).clientHeight / 2,
         silent: false
       });
       window.panzoom = panzoomInstance;
 
-      const canvasElement = <HTMLElement>document.querySelector(".canvas");
-      canvasElement.addEventListener("wheel", (event: WheelEvent) => {
-        panzoomInstance.zoomWithWheel(event);
-        const scale = panzoomInstance.getScale();
-        setProperty({ path: "zoomScale", value: scale });
-        store.dispatch("trackZooming", { scale, timestamp: new Date().getTime(), x: event.clientX, y: event.clientY });
-        fixQuadraticItems();
-      });
-
-      canvasElement.addEventListener("click", (event: MouseEvent) => {
-        const grid = event.target as HTMLElement;
-        if (Array.from(grid.classList).includes("grid")) {
-          const pan = panzoomInstance.getPan();
-          store.dispatch("trackPanning", { ...pan, timestamp: new Date().getTime() });
+      zoomElement.addEventListener("wheel", (event: WheelEvent) => {
+        if (event.ctrlKey) {
+          panzoomInstance.zoomWithWheel(event, { animate: true });
+          const scale = panzoomInstance.getScale();
+          setProperty({ path: "zoomScale", value: scale });
+          store.dispatch("trackZooming", { scale, timestamp: new Date().getTime(), x: event.clientX, y: event.clientY });
+          fixQuadraticItems();
         }
+        event.preventDefault();
+        event.stopPropagation();
       });
 
-      canvasElement.addEventListener("panzoompan", (event: MouseEvent) => {
-        if (event.target !== document.querySelector(".vue-grid-layout.grid")) {
-          return;
-        }
+      zoomElement.addEventListener("panzoompan", (event: Event) => {
+        const pan = panzoomInstance.getPan();
+        // panzoomInstance.pan(pan.x, pan.y, { relative: true });
+        store.dispatch("trackPanning", { ...pan, timestamp: new Date().getTime() });
       });
 
-      // TODO remove hack for activating reactivity
-      setProperty({ path: "zoomScale", value: 1 });
+      canvas.addEventListener("wheel", (event: WheelEvent) => {
+        event.preventDefault();
+        event.stopPropagation();
+      });
 
       fixQuadraticItems();
     });
-    const updateDimensions = (id, gridWidth, gridHeight) => {
+    setProperty({ path: "zoomScale", value: 1.0 });
+
+    const updateDimensions = (id: number, gridHeight: number, gridWidth: number) => {
       const path = `nodes__${currentNode}__layouts__${layoutSize.value}`;
       const layout = getProperty(path);
       const index = layout.findIndex((item) => item.i == id);
-      // setProperty({ path: `${path}__${index}`, value: { ...layout[index], w: gridWidth, h: gridHeight } });
+      setProperty({ path: `${path}__${index}`, value: { ...layout[index], w: gridWidth, h: gridHeight } });
       // https://github.com/jbaysolutions/vue-grid-layout/issues/575
       // window.dispatchEvent(new Event("resize"));
       fixQuadraticItems();
     };
 
-    let timer;
-    const setCoordinates = (i, x, y) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => {
-        const movedLayout = currentLayout.value.map((node) => {
-          if (node.i == i) {
-            node.x = x;
-            node.y = y;
-          }
-          return node;
-        });
+    const setCoordinates = (i: number, x: number, y: number) => {
+      const movedLayout = currentLayout.value.map((node) => {
+        if (node.i == i) {
+          node.x = x;
+          node.y = y;
+        }
+        return node;
+      });
 
-        const path = `nodes__${currentNode}__layouts__${layoutSize.value}`;
-        setProperty({ path, value: movedLayout });
-        fixQuadraticItems();
-      }, 100);
+      const path = `nodes__${currentNode}__layouts__${layoutSize.value}`;
+      setProperty({ path, value: movedLayout });
+      fixQuadraticItems();
     };
 
     return {
@@ -231,7 +234,9 @@ export default {
       setCoordinates,
       layoutSize,
       modals,
-      nodeComponentIds
+      nodeComponentIds,
+      currentNode,
+      CONSTANTS
     };
   }
 };
@@ -245,6 +250,7 @@ export default {
 .zoomWrapper {
   width: 10000px;
   height: 10000px;
+  border: 1px solid black;
 }
 /* GRID */
 .grid {
@@ -259,7 +265,22 @@ export default {
   height: 20px;
   z-index: 999;
 }
-.vue-grid-item {
+
+.vgl-layout {
+  --vgl-placeholder-bg: red;
+  --vgl-placeholder-opacity: 20%;
+  --vgl-placeholder-z-index: 2;
+
+  --vgl-item-resizing-z-index: 999;
+  --vgl-item-resizing-opacity: 60%;
+  --vgl-item-dragging-z-index: 999;
+  --vgl-item-dragging-opacity: 100%;
+
+  --vgl-resizer-size: 10px;
+  --vgl-resizer-border-color: #444;
+  --vgl-resizer-border-width: 2px;
+}
+.vgl-item {
   touch-action: none;
   border: solid 1px black;
   box-sizing: border-box;
@@ -268,14 +289,14 @@ export default {
   box-shadow: 2px 3px 5px 0px rgba(8, 166, 60, 1);
   box-shadow: 2px 3px 9px 0px rgba(0, 0, 0, 1);
 }
-.vue-grid-item .resizing {
+.vgl-item--resizing {
   opacity: 0.9;
 }
-.vue-grid-item .no-drag {
+.vgl-item .no-drag {
   height: 100%;
   width: 100%;
 }
-.vue-grid-item .add {
+.vgl-item .add {
   cursor: default;
 }
 .vue-draggable-handle {
@@ -294,8 +315,25 @@ export default {
   cursor: pointer;
 }
 
-.vue-grid-item.vue-grid-placeholder {
+:deep(.vgl-item:not(.vgl-item--placeholder)) {
+  background-color: #f3f3f3;
+  border: 1px solid black;
+}
+
+.vgl-item .vue-grid-placeholder {
   background: grey !important;
+}
+
+.vgl-layout::before {
+  position: absolute;
+  width: calc(100% - 5px);
+  height: calc(100% - 5px);
+  margin: 5px;
+  content: "";
+  background-image: linear-gradient(to right, lightgrey 1px, transparent 1px),
+    linear-gradient(to bottom, lightgrey 1px, transparent 1px);
+  background-repeat: repeat;
+  background-size: calc(calc(100% - 5px) / 12) 40px;
 }
 </style>
 
