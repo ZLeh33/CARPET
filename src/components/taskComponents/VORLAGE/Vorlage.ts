@@ -10,40 +10,38 @@ import { TaskComponent } from "@/components/taskComponents/TaskComponent";
 import type { ComputedRef } from "vue";
 import { unref } from "vue";
 
-export interface DOTGraphProps extends ComponentProps {
+export interface VORLAGEProps extends ComponentProps {
   graphID?: string | number;
 }
 
-export type DOTGraphComponentType = "DOTGraph";
+export type VORLAGEComponentType = "DOTGraph";
 
-export interface SerializedDOTGraphDependencies extends SerialisedDependencies {
-  dotDescription?: TaskGraphPath;
+export interface serialisedVORLAGEDependencies extends SerialisedDependencies {
+  VORLAGE?: TaskGraphPath;
 }
 
-export interface DOTGraphDependencies extends ComponentDependencies {
-  dotDescription?: ComputedRef<string>;
+export interface VORLAGEDependencies extends ComponentDependencies {
+  VORLAGE?: ComputedRef<string>;
 }
 
-export interface DotGraphComponentData extends ComponentData {
-  dotDescription?: string;
+export interface VORLAGEComponentData extends ComponentData {
+  VORLAGE?: string;
 }
 
-export interface SerializedDOTGraphComponent
-  extends SerializedTaskComponent<DOTGraphComponentType, SerializedDOTGraphDependencies, DotGraphComponentData> {}
+export interface SerializedVORLAGEComponent
+  extends SerializedTaskComponent<VORLAGEComponentType, VORLAGEDependencies, VORLAGEComponentData> {}
 
-export class DOTGraphComponent extends TaskComponent<
-  SerializedDOTGraphComponent,
-  SerializedDOTGraphDependencies,
-  DOTGraphDependencies,
-  DotGraphComponentData
+export class VORLAGEComponent extends TaskComponent<
+  SerializedVORLAGEComponent,
+  serialisedVORLAGEDependencies,
+  VORLAGEDependencies,
+  VORLAGEComponentData
 > {
   /**
-   * The DOTGraphComponent class is a derived taskComponent, that display a Graph written in the Graphviz-DOT language.
+   * The VORLAGEComponent class is a derived taskComponent, that is a template for actual CARPET UI-Elements.
    */
   public validate() {
-    let isValid = false;
-    const dependencies = this.loadDependencies();
-    if (unref(unref(dependencies).dotDescription) !== "") isValid = true;
+    let isValid = true;
     unref(this.storeObject).setProperty({ path: `${this.serialisedTaskComponentPath}__isValid`, value: isValid });
 
     return isValid;
