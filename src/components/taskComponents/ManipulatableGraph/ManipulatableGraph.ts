@@ -88,3 +88,7 @@ export class ManipulatableGraphComponent extends TaskComponent<
 
   public validate(): void {}
 }
+
+class DOTGraphBuilder {
+  constructor() {}
+}

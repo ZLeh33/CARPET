@@ -62,7 +62,7 @@ watch(<Ref<any>>droppedElements, (newElements: string) => {
       value: []
     });
   }
-  console.log(unref(componentData).userGraph);
+  console.log(unref(componentData).userGraph, `${unref(componentPath)}__component__userGraph`);
 });
 
 // const selectors = editableFields.map((field) => `g.node g[id="a_${field}"] text`);
