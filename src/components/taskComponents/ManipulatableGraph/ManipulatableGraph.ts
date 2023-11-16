@@ -12,10 +12,14 @@ import type {
   NestedComponents
 } from "@/components/taskComponents/TaskComponent";
 import { TaskComponent } from "@/components/taskComponents/TaskComponent";
+import Graph from "@/helpers/GraphTools/Graph";
+import { unref } from "vue";
+
 import type { ComputedRef } from "vue";
 import type { SerializedDOTGraphComponent } from "@/components/taskComponents/DOTGraph/DOTGraph";
 import type { DroppedElements, DropData, DragElements } from "@/components/taskComponents/DragDrop/ItemPallet/ItemPallet";
 import type { CSSIDSelector } from "@/components/taskComponents/DragDrop/DragElement/DragElement";
+import type { SerializedGraph } from "@/helpers/GraphTools/Graph";
 
 export type ManipulatableGraphComponentType = "ManipulatableGraph";
 
@@ -50,7 +54,8 @@ export interface ManipulatableGraphDependencies extends ComponentDependencies {
 
 export interface ManipulatableGraphComponentData extends ComponentData {
   editableFields: Array<string>;
-  userGraph: string;
+  dotUserGraph: string;
+  userGraph: SerializedGraph;
 }
 
 export interface ManipulatableGraphMethodImplementations extends MethodImplementations {}
@@ -85,6 +90,28 @@ export class ManipulatableGraphComponent extends TaskComponent<
    */
 
   public dropHandler() {}
+
+  public getDotAttributes() {
+    const test = '${nodeID} [label="" shape="hexagon" fixedSize="false"]';
+
+    const attributeSectionRegExp = /(\[.*\])/g;
+    const attributeTupleRegExp = /(\w+="?\w*"?)/g;
+
+    const res = test.match(attributeSectionRegExp);
+  }
+
+  public addNode(dotNode: string) {
+    const componentData = this.getComponentData();
+    const serializedUserGraph = unref(componentData).userGraph;
+    const userGraph = new Graph().import(serializedUserGraph);
+
+    // take the highest existing Id and add 1
+    const newNodeId = userGraph.nodes().reduce((max, current) => (current > max ? current : max)) + 1;
+
+    dotNode = dotNode.replace(/node\d+/g, `node${newNodeId}`);
+
+    userGraph.addNode(dotNode);
+  }
 
   public validate(): void {}
 }

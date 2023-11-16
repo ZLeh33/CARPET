@@ -40,11 +40,11 @@ const droppedElements = unref(dependencies).droppedElements;
 const dragElements = unref(dependencies).dragElements;
 
 const editableFields = unref(componentData).editableFields;
-const userGraph = unref(componentData).userGraph;
+const dotUserGraph = unref(componentData).dotUserGraph;
 
-watch(<Ref<any>>droppedElements, (newElements: string) => {
+watch(droppedElements, (newElements) => {
   if (newElements.length) {
-    let newGraph = unref(userGraph);
+    let newGraph = unref(dotUserGraph);
     for (const newElement of newElements) {
       const template = unref(dragElements)[newElement].dropData.dotTemplate;
 
