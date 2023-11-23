@@ -94,7 +94,7 @@ export const taskStore = defineStore("taskGraph", {
         await this.toggleLoading();
       }
     },
-    async setPropertyFromPath(payload: { path: string; value: any }) {
+    async setPropertyFromPath(payload: { path: string; value: any; metadata?: { descriptor: string } }) {
       const { path, value } = payload;
       if (typeof path !== "string") {
         throw new Error(`Path is not a string: ${path}`);
