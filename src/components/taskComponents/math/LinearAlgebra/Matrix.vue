@@ -19,6 +19,7 @@
             :componentID="id"
             :isReadOnly="isReadOnly"
             :element="element"
+            :inputType="inputType ?? 'number'"
           />
         </td>
       </tr>
@@ -32,8 +33,8 @@ import { Matrix } from "@/helpers/LinearAlgebra";
 import MatrixField from "@/components/taskComponents/math/LinearAlgebra/MatrixField.vue";
 import type { IMatrixComponent, IMatrixInstruction } from "@/interfaces/componentInterfaces/MatrixInterface";
 import ContextMenu from "@/components/taskComponents/mixins/ContextMenu.vue";
-import type {IMethodsDefinition} from "@/interfaces/TaskGraphInterface";
-import {getSelectedMethods} from "@/helpers/getSelectedMethods";
+import type { IMethodsDefinition } from "@/interfaces/TaskGraphInterface";
+import { getSelectedMethods } from "@/helpers/getSelectedMethods";
 
 export default {
   props: { componentID: Number, storeObject: Object },
@@ -53,6 +54,7 @@ export default {
 
     const isReadOnly = getProperty(`${componentPath}__readOnly`);
     const instructions = getProperty(`${componentPath}__initialize`);
+    const inputType = getProperty(`${componentPath}__inputType`);
     const rowLabelPath = getProperty(`${componentPath}__rowLabel`);
     const columnLabelPath = getProperty(`${componentPath}__columnLabel`);
     const rowLabel = computed(() => {
@@ -261,7 +263,10 @@ export default {
         window.navigator.clipboard.writeText(csv);
       }
     };
-    const selectedMethods = getSelectedMethods(<IMethodsDefinition>getProperty(`nodes__${currentNode.value}__components__${props.componentID}__methods`), methods);
+    const selectedMethods = getSelectedMethods(
+      <IMethodsDefinition>getProperty(`nodes__${currentNode.value}__components__${props.componentID}__methods`),
+      methods
+    );
 
     return {
       id: props.componentID,
@@ -270,7 +275,8 @@ export default {
       rowLabel,
       columnLabel,
       isReadOnly,
-      selectedMethods: selectedMethods
+      selectedMethods: selectedMethods,
+      inputType
     };
   }
 };
