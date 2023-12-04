@@ -4,12 +4,12 @@
       <tr v-if="columnLabel && columnLabel.length">
         <p class="placeholder">&nbsp;</p>
         <th v-for="(label, i) in columnLabel" :key="i">
-          <p class="matrix_label">{{ label }}</p>
+          <p class="matrix_label column_label">{{ label }}</p>
         </th>
       </tr>
       <tr v-for="(row, i) in userData" :key="i">
         <th v-if="rowLabel && rowLabel.length">
-          <p class="matrix_label">{{ rowLabel[i] }}</p>
+          <p class="matrix_label row_label">{{ rowLabel[i] }}</p>
         </th>
         <td class="matrix_element" v-for="(element, j) in userData[i]" :key="j">
           <MatrixField
@@ -294,7 +294,7 @@ input::-webkit-inner-spin-button {
   min-height: 100%;
   height: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto;
 }
 
 .matrix .matrix_element {
@@ -323,6 +323,19 @@ th {
   font-size: 130%;
   width: 100%;
   text-align: center;
+}
+
+.column_label {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.row_label {
+  min-width: fit-content;
+  margin: 0 auto;
 }
 
 .valid {
