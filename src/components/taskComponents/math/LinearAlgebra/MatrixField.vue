@@ -30,6 +30,9 @@ export default {
     const taskMode = computed(() => store.state.taskMode);
     const userData = computed(() => loadData(`${componentPath}__userData`));
     const solutionData = computed(() => loadData(`${componentPath}__solutionData`));
+    const currentTask = computed(() => getProperty("currentTask"));
+
+    const validationConfig = getProperty(`${componentPath}__validationConfig`);
 
     const loadData = (path: string) => {
       const data = getProperty(path);
@@ -89,10 +92,39 @@ export default {
       return { isCorrect, isSet };
     };
 
+    // TODO!!: delete in proper MatrixField component
+    const externalValidation = async () => {
+      const rowIndex = <number>props.rowIndex;
+      const columnIndex = <number>props.columnIndex;
+
+      const userData = getProperty(`${componentPath}__userData`).value;
+
+      const validationMatrix: Array<Array<boolean | null>> = await store.dispatch("fetchTaskData", {
+        userData,
+        endpoint: `${currentTask.value}/${validationConfig.instruction}`
+      });
+
+      const isCorrectValue = <boolean>validationMatrix[rowIndex][columnIndex];
+      const isCorrect = isCorrectValue;
+      const isSet = isCorrectValue !== null ? true : false;
+
+      // TODO: make global/constant enum variable in centralised place
+      if (taskMode.value === "practice") setVisualCorrectness(isCorrect, isSet, rowIndex, columnIndex);
+
+      setProperty({
+        path: `${componentPath}__validationData`,
+        value: validationMatrix
+      });
+    };
+
     watch(
       () => props.element,
-      () => {
-        validateMatrixField(<number>props.rowIndex, <number>props.columnIndex);
+      async () => {
+        if (validationConfig && validationConfig.value !== undefined) {
+          await externalValidation();
+        } else {
+          validateMatrixField(<number>props.rowIndex, <number>props.columnIndex);
+        }
       }
     );
 

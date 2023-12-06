@@ -21,18 +21,9 @@ const reactiveProps = toRefs(props);
 const { storeObject, componentID, componentPath, graphID } = reactiveProps;
 
 const component = new DOTGraphComponent(storeObject, unref(componentID), unref(componentPath));
-
 const componentData = component.getComponentData();
-
 const taskData = component.getTaskData();
-
-const currentTaskGraphNode = component.getCurrentTaskGraphNode();
-
 const dependencyPaths = component.getDependencyPaths();
-
-const currentNodeData = computed(() => {
-  return unref(storeObject).getProperty(`nodes__${currentTaskGraphNode}`);
-});
 
 const completeGraphID = unref(graphID)
   ? `graph_${unref(componentID)}_${unref(graphID)}`
@@ -61,7 +52,7 @@ const renderGraph = (description: string) => {
     zoom: false,
     useWorker: false
   })
-    .transition(transition())
+    .transition(() => transition())
     .renderDot(description);
 };
 

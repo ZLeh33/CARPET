@@ -67,6 +67,7 @@ export const taskStore = defineStore("taskGraph", {
       Object.entries(JSON.parse(result.data)).forEach(async ([key, value]) => {
         await this.setPropertyFromPath({ path: `taskData__${key}`, value: value });
       });
+      return result;
     },
     async fetchTaskGraph(payload: { task: string }) {
       try {

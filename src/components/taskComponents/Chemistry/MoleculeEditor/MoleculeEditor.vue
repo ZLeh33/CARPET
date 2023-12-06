@@ -33,6 +33,6 @@ onMounted(() => {
 .jsmeContainer {
   width: 100%;
   height: 100%;
-  margin-left: 30px;
+  margin-top: 30px;
 }
 </style>
