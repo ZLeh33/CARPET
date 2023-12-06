@@ -71,7 +71,7 @@ export default {
     }
     interface ValidityMatrix extends Array<Array<boolean | null>>;
     */
-    const validationConfig = getProperty(`${componentPath}__validationConfig`);
+    const validationConfig = getProperty(`nodes__${currentNode.value}__components__${props.componentID}__validationConfig`);
     const rowLabel = computed(() => {
       if (rowLabelPath) return getProperty(rowLabelPath);
       else return [];
