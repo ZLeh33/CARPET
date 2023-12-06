@@ -32,7 +32,7 @@ export default {
     const solutionData = computed(() => loadData(`${componentPath}__solutionData`));
     const currentTask = computed(() => getProperty("currentTask"));
 
-    const validationConfig = getProperty(`${componentPath}__validationConfig`);
+    const validationConfig = getProperty(`nodes__${currentNode.value}__components__${props.componentID}__validationConfig`);
 
     const loadData = (path: string) => {
       const data = getProperty(path);
