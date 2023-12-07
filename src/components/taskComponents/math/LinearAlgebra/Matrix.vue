@@ -271,7 +271,7 @@ export default {
       userData,
       async () => {
         let { isValid, isCorrect } = { isValid: false, isCorrect: false };
-        if (validationConfig && validationConfig.value !== undefined) {
+        if (validationConfig) {
           ({ isValid, isCorrect } = await externalValidation());
         } else {
           ({ isValid, isCorrect } = validateMatrixHacked());

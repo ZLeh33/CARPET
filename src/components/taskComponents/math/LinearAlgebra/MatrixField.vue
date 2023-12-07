@@ -120,7 +120,7 @@ export default {
     watch(
       () => props.element,
       async () => {
-        if (validationConfig && validationConfig.value !== undefined) {
+        if (validationConfig) {
           await externalValidation();
         } else {
           validateMatrixField(<number>props.rowIndex, <number>props.columnIndex);
