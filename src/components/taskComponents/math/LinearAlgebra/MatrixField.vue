@@ -100,8 +100,8 @@ export default {
       const userData = getProperty(`${componentPath}__userData`).value;
 
       const validationMatrix: Array<Array<boolean | null>> = await store.dispatch("fetchTaskData", {
-        userData,
-        endpoint: `${currentTask.value}/${validationConfig.instruction}`
+        endpoint: `${currentTask.value}/${validationConfig.instruction}`,
+        payload: { userData, instruction: validationConfig.instruction, type: currentTask.value, task: currentTask.value }
       });
 
       const isCorrectValue = <boolean>validationMatrix[rowIndex][columnIndex];
