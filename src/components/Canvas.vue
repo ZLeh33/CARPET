@@ -39,7 +39,7 @@
           :drag-allow-from="`.${CONSTANTS.DRAGELEMENTCLASS}`"
           @move="setCoordinates"
           @resize="updateDimensions"
-          :preserveAspectRatio="item.preserveAspectRatio ?? true"
+          :preserveAspectRatio="item.preserveAspectRatio ?? false"
           :data-id="nodeComponentIds[item.i]"
         >
           <img class="dragHandler" :class="CONSTANTS.DRAGELEMENTCLASS" src="/img/drag_arrow.webp" />
@@ -88,7 +88,10 @@ import GanttDiagram from "@/components/taskComponents/scheduling/GanttDiagram.vu
 import ManipulatableGraph from "@/components/taskComponents/ManipulatableGraph/ManipulatableGraph.vue";
 import ItemPallet from "@/components/taskComponents/DragDrop/ItemPallet/ItemPallet.vue";
 import MoleculeEditor from "@/components/taskComponents/Chemistry/MoleculeEditor/MoleculeEditor.vue";
-
+import Chart from "@/components/taskComponents/Charts/Chart.vue";
+import EchtButton from "@/components/taskComponents/EchtButton.vue";
+import Bild from "@/components/taskComponents/Bild.vue";
+import BackendFormular from "@/components/taskComponents/BackendFormular.vue";
 export default {
   name: "Canvas",
   components: {
@@ -118,7 +121,11 @@ export default {
     Modal,
     PlanGraph,
     EditableGraph,
-    GanttDiagram
+    GanttDiagram,
+    Chart,
+    EchtButton,
+    Bild,
+    BackendFormular
   },
   props: {
     storeObject: Object
