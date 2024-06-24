@@ -3,8 +3,10 @@
     <table :id="`matrix_${id}`" class="matrix">
       <tr v-if="columnLabel && columnLabel.length">
         <p class="placeholder">&nbsp;</p>
-        <th v-for="(label, i) in columnLabel" :key="i">
+        <!--zakaria span mouseover-->
+        <th v-for="(label, i) in columnLabel" :key="i" @mouseover="handleMouseOver(i)" @mouseleave="handleMouseLeave">
           <p class="matrix_label column_label">{{ label }}</p>
+          <span v-show="tooltipVisible && hoveredColumn === i" id="tooltiptext">{{ tooltipMessage }}</span>
         </th>
       </tr>
       <tr v-for="(row, i) in userData" :key="i">
@@ -12,7 +14,10 @@
           <p class="matrix_label row_label">{{ rowLabel[i] }}</p>
         </th>
         <td class="matrix_element" v-for="(element, j) in userData[i]" :key="j">
+          <!-- zakaria min max-->
           <MatrixField
+            :min="getMinValueForColumn(columnLabel[j])"
+            :max="getMaxValueForColumn(columnLabel[j])"
             :rowIndex="i"
             :columnIndex="j"
             :storeObject="storeObject"
@@ -21,6 +26,7 @@
             :element="element"
             :inputType="inputType ?? 'number'"
           />
+          
         </td>
       </tr>
     </table>
@@ -28,7 +34,7 @@
 </template>
 
 <script lang="ts">
-import { onMounted, computed, watch } from "vue";
+import { onMounted, computed, watch, ref } from "vue";
 import { Matrix } from "@/helpers/LinearAlgebra";
 import MatrixField from "@/components/taskComponents/math/LinearAlgebra/MatrixField.vue";
 import type { IMatrixInstruction } from "@/interfaces/componentInterfaces/MatrixInterface";
@@ -58,6 +64,8 @@ export default {
     const inputType = getProperty(`${componentPath}__inputType`);
     const rowLabelPath = getProperty(`${componentPath}__rowLabel`);
     const columnLabelPath = getProperty(`${componentPath}__columnLabel`);
+    
+
     // TODO set interface in proper component
     /* interface MatrixValidationConfig {
       instruction: string;
@@ -85,6 +93,48 @@ export default {
     const solutionData = computed(() => loadData(`${componentPath}__solutionData`));
     const validationData = computed(() => loadData(`${componentPath}__validationData`));
 
+    //************************************************************* Zakaria************************************/
+    const columnRange = computed(() => loadColumnRangeData(`${componentPath}__columnRange`));
+
+    const loadColumnRangeData = (path) => {
+        const columnRangeData = getProperty(path);
+        if (columnRangeData) {
+            return columnRangeData.map(item => ({
+                name: item.name,
+                min: item.min,
+                max: item.max
+            }));
+        }
+    return [];
+    };
+    const getMinValueForColumn = (columnName: string) => {
+      const column = columnRange.value.find(c => c.name === columnName);
+      return column ? column.min : null;
+    };
+
+    const getMaxValueForColumn = (columnName: string) => {
+      const column = columnRange.value.find(c => c.name === columnName);
+      return column ? column.max : null;
+    };
+
+    const tooltipVisible = ref(false);
+    const tooltipMessage = ref('');
+    const hoveredColumn = ref(null);
+
+    const handleMouseOver = (index: number) => {
+      const columnName = columnLabel.value[index];
+      const minValue = getMinValueForColumn(columnName);
+      const maxValue = getMaxValueForColumn(columnName);
+      tooltipMessage.value = `Min: ${minValue}, Max: ${maxValue}`;
+      hoveredColumn.value = index;
+      tooltipVisible.value = true;
+    };
+
+    const handleMouseLeave = () => {
+      tooltipVisible.value = false;
+      hoveredColumn.value = null;
+    };
+    //**********************************************************END ******************************************************************/
     const initialize = async (instructions: IMatrixInstruction) => {
       Object.entries(instructions).forEach(([name, instructions]) => {
         // TODO: change replay functionality for stepping in task to apply incremental changes behind loading screen
@@ -326,13 +376,37 @@ export default {
       columnLabel,
       isReadOnly,
       selectedMethods: selectedMethods,
-      inputType
+      inputType,
+      //***************************************************************zakaria***************************
+      columnRange,
+      getMinValueForColumn,
+      getMaxValueForColumn,
+      tooltipVisible,
+      tooltipMessage,
+      hoveredColumn,
+      handleMouseOver,
+      handleMouseLeave
+      /********************************************************************end */
     };
   }
 };
 </script>
 
 <style scoped>
+/*********zakaria**************************** */
+#tooltiptext {
+  position: absolute;
+  background-color: #f9f9f9;
+  color: #333;
+  border: 1px solid #ccc;
+  padding: 5px;
+  border-radius: 4px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+/********************END*************************** */
+
+
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -376,8 +450,10 @@ th {
 }
 
 .column_label {
+  writing-mode: horizontal-tb;
+  /*
   writing-mode: vertical-rl;
-  /* text-orientation: upright; */
+   text-orientation: upright; */
   /* transform: rotate(180deg); */
   display: flex;
   align-items: center;

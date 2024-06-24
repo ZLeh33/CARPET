@@ -7,7 +7,11 @@
     @keyup="updateField"
     :type="inputType"
     :value="element"
+    :min="min"
+    :max="max"
+    @input="checkValidity"
   />
+  <!-- min max zakaria-->
 </template>
 
 <script lang="ts">
@@ -21,7 +25,10 @@ export default {
     element: Number,
     storeObject: Object,
     componentID: Number,
-    inputType: String
+    inputType: String,
+    //zakaria
+    min: Number,
+    max:Number
   },
   setup(props) {
     const { store, getProperty, setProperty } = props.storeObject;
@@ -127,13 +134,33 @@ export default {
         }
       }
     );
+    /*******************************************zakaria checkValidity */
+    const checkValidity = (event: Event) => {
+      const element = <HTMLInputElement>event.target;
+      const value = element.value ? parseInt(element.value) : null;
+      
+      if (value < props.min || value > props.max) {
+        element.classList.add('out-of-range');
+        element.classList.remove('in-range');
+      } else {
+        element.classList.remove('out-of-range');
+        element.classList.add('in-range');
+      }
+    };
 
-    return { updateField };
+    
+    return { updateField , checkValidity };
   }
 };
 </script>
 
 <style scoped>
+.out-of-range {
+  border: 7px solid red; /* Ändere die Breite der Linie und den Stil */
+}
+.in-range {
+  border: 7px solid green; /* Ändere die Breite der Linie und den Stil */
+}
 .scalar {
   width: 30px;
   text-align: center;
