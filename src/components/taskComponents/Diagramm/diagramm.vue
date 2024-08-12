@@ -1,126 +1,147 @@
 <template>
-    
-    <!-- Überprüfen, ob Datensätze vorhanden sind -->
     <div v-if="datasets.length > 0">
-        <h1>{{ title }}</h1>
-        <!-- Canvas-Element, in dem das Diagramm gerendert wird -->
-        <canvas :id="chartId" ref="chartRef"></canvas>
+      <h1>{{ title }}</h1>
+      <canvas :id="chartId" ref="chartRef"></canvas>
     </div>
-</template>
-
-<script lang="ts">
-import { defineComponent, computed, ref, onMounted } from 'vue';
-import { Chart, registerables } from 'chart.js';
-
-// Registrierung der Chart.js-Komponenten
-Chart.register(...registerables);
-
-export default defineComponent({
+    <div v-else>
+      <p>No data available to display.</p>
+    </div>
+  </template>
+  
+  <script lang="ts">
+  import { defineComponent, computed, ref, onMounted, watch } from 'vue';
+  import { Chart, registerables } from 'chart.js';
+  
+  Chart.register(...registerables);
+  
+  export default defineComponent({
     props: {
-        componentID: Number,        // ID der Komponente
-        storeObject: Object         // Store-Objekt zur Datenhaltung
+      componentID: Number,
+      storeObject: Object
     },
     setup(props) {
-        // Extrahiere store und getProperty Methode aus dem Store-Objekt
-        const { store, getProperty } = props.storeObject;
-
-        // den aktuellen Knoten des Zustands
-        const currentNode = computed(() => store.state.currentNode);
-        // Pfad zur Komponente
-        const componentPath = computed(() => `nodes__${currentNode.value}__components__${props.componentID}__component`);
-
-        // Funktion zum Laden von Daten(title,type)
-        const loadData = (path: string) => {
-            const data = getProperty(path);
-            if (data !== null && data !== undefined) {
-                return data.toString();
-            }
-            return null;
-        };
-
-        // Funktion zum Laden von datasets für Chart()
-        const loadDatasets = (path: string) => {
-            const datasets = getProperty(path);
-            if (datasets instanceof Array) {
-                return datasets.map(item => ({
-                    label: item.label,
-                    data: item.data,
-                    borderColor: item.borderColor,
-                    backgroundColor: item.backgroundColor,
-                    tension: item.tension
-                }));
-            }
-            return [];
-        };
-
-        // Funktion zum Laden der Labels für Chart()
-        const loadLabels = (path: string) => {
-            const labels = getProperty(path);
-            if (Array.isArray(labels) && labels.length > 0) {
-                return labels;
-            }
-            return [""];
-        };
-
-        // Computed properties für Titel, Typ, Datensätze und Labels des Diagramms
-        const title = computed(() => loadData(`${componentPath.value}__title`));
-        const type = computed(() => loadData(`${componentPath.value}__type`));
-        const datasets = computed(() => loadDatasets(`${componentPath.value}__datasets`));
-        const labels = computed(() => loadLabels(`${componentPath.value}__labels`));
-
-        // ID des Canvas-Elements
-        const chartId = `myChart${props.componentID}`;
-        // Referenz auf das Canvas-Element
-        const chartRef = ref<HTMLCanvasElement | null>(null);
+      const { store, getProperty } = props.storeObject;
+  
+      const currentNode = computed(() => store.state.currentNode);
+      const componentPath = computed(() => `nodes__${currentNode.value}__components__${props.componentID}__component`);
+  
+      const loadData = (path: string) => {
+        const data = getProperty(path);
+        console.log(`Data loaded from path ${path}:`, data); // Debug-Ausgabe
+        if (data !== null && data !== undefined) {
+          return data.toString();
+        }
+        return null;
+      };
+  
+      const loadDatasets = (path: string) => {
+        const datasetsPath = getProperty(path);
+        console.log(`Datasets path from ${path}:`, datasetsPath); // Debug-Ausgabe
+        if (datasetsPath) {
+          const datasets = getProperty(datasetsPath);
+          console.log(`Datasets loaded from path ${datasetsPath}:`, datasets); // Debug-Ausgabe
+          if (Array.isArray(datasets)) {
+            return datasets.map(item => ({
+              label: item.label,
+              data: item.data,
+              borderColor: item.borderColor,
+              backgroundColor: item.backgroundColor,
+              tension: item.tension
+            }));
+          }
+        }
+        return [];
+      };
+  
+      const loadLabels = (path: string) => {
+        const labelsPath = getProperty(path);
+        console.log(`Labels loaded from path ${path}:`, labels); // Debug-Ausgabe
+        if (labelsPath) {
+          const labels = getProperty(labelsPath);
+          console.log(`Labels loaded from path ${labelsPath}:`, labels); // Debug-Ausgabe
+          if (Array.isArray(labels) && labels.length > 0) {
+            return labels.map(item => item.toString());
+        }
         
-        
-
-        // Hook, der ausgeführt wird, wenn die Komponente gemountet wird
-        onMounted(() => {
-            if (datasets.value.length > 0 && chartRef.value) {
-                const ctx = chartRef.value.getContext('2d');
-                if (ctx) {
-                    // Erstelle das Chart.js Diagramm
-                    new Chart(ctx, {
-                        type: type.value || 'line',  // Standard-Diagrammtyp ist 'line'
-                        data: {
-                            labels: labels.value,
-                            datasets: datasets.value.map(item => ({
-                                label: item.label,
-                                data: item.data,
-                                borderColor: item.borderColor,
-                                backgroundColor: item.backgroundColor,
-                                tension: item.tension,
-                                fill: false, // Stelle sicher, dass das Liniendiagramm den Bereich darunter nicht füllt
-                                borderWidth: 2 // Setze eine Standardbreite für die Linien
-                            }))
-                        },
-                        options: {
-                            scales: {
-                                y: {
-                                    beginAtZero: true // Die Y-Achse beginnt bei 0
-                                }
-                            },
-                        }
-                    });
+        }
+        return [""];
+      };
+  
+      const title = computed(() => loadData(`${componentPath.value}__title`));
+      const type = computed(() => loadData(`${componentPath.value}__type`));
+      const datasets = computed(() => loadDatasets(`${componentPath.value}__datasets`));
+      const labels = computed(() => loadLabels(`${componentPath.value}__labels`));
+  
+      const chartId = `myChart${props.componentID}`;
+      const chartRef = ref<HTMLCanvasElement | null>(null);
+  
+      let chartInstance: Chart | null = null;
+  
+      const createChart = () => {
+        if (datasets.value.length > 0 && chartRef.value) {
+          const ctx = chartRef.value.getContext('2d');
+          if (ctx) {
+            if (chartInstance) {
+              chartInstance.destroy();
+            }
+            console.log('Creating chart with the following data:', {
+              type: type.value || 'line',
+              labels: labels.value,
+              datasets: datasets.value
+            }); // Debug-Ausgabe
+  
+            chartInstance = new Chart(ctx, {
+              type: type.value || 'line',
+              data: {
+                labels: labels.value,
+                datasets: datasets.value.map(item => ({
+                  label: item.label,
+                  data: item.data,
+                  borderColor: item.borderColor,
+                  backgroundColor: item.backgroundColor,
+                  tension: item.tension,
+                  fill: false,
+                  borderWidth: 2
+                }))
+              },
+              options: {
+                scales: {
+                  y: {
+                    beginAtZero: true
+                  }
                 }
-            }
-        });
-
-        // Rückgabe der  Variablen und Methoden für das Template
-        return {
-            title,
-            type,
-            datasets,
-            chartId,
-            chartRef
-        };
+              }
+            });
+          } else {
+            console.error('Unable to get context from canvas.');
+          }
+        } else {
+          console.log('No datasets available to display chart.'); // Debug-Ausgabe
+        }
+      };
+  
+      watch([datasets, labels, type], () => {
+        createChart();
+      }, { immediate: true });
+  
+      onMounted(() => {
+        createChart();
+      });
+  
+      return {
+        title,
+        type,
+        datasets,
+        chartId,
+        chartRef
+      };
     }
-});
-</script>
-
-<style>
-    h1{
-        text-align: center;
-    }
-</style>
+  });
+  </script>
+  
+  <style>
+  h1 {
+    text-align: center;
+  }
+  </style>
+  
