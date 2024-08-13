@@ -60,7 +60,9 @@
           const labels = getProperty(labelsPath);
           console.log(`Labels loaded from path ${labelsPath}:`, labels); // Debug-Ausgabe
           if (Array.isArray(labels) && labels.length > 0) {
-            return labels.map(item => item.toString());
+            //return labels.map(item => item.toString());
+            // Konvertiere die Labels in Ganzzahlen
+            return labels.map(item => parseInt(item, 10));
         }
         
         }
@@ -89,7 +91,10 @@
               labels: labels.value,
               datasets: datasets.value
             }); // Debug-Ausgabe
-  
+            
+            // Berechne die Schrittgröße für die Ticks
+            const stepSize = Math.round((Math.max.apply(Math, labels.value) / 10) / 5) * 5;
+            console.log('hier'+stepSize)
             chartInstance = new Chart(ctx, {
               type: type.value || 'line',
               data: {
@@ -106,6 +111,15 @@
               },
               options: {
                 scales: {
+                  x: {
+                    ticks: {
+                      
+                      stepSize: stepSize,
+                      beginAtZero: true,
+                      precision: 10,
+                      maxTicksLimit: 10, // Begrenze die Anzahl der Ticks auf der x-Achse
+                  }
+                  },
                   y: {
                     beginAtZero: true
                   }
