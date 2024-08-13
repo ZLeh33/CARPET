@@ -92,6 +92,7 @@ import MoleculeEditor from "@/components/taskComponents/Chemistry/MoleculeEditor
 import diagramm from "@/components/taskComponents/Diagramm/diagramm.vue";
 import EchtButton from "@/components/taskComponents/EchtButton.vue";
 import Bild from "@/components/taskComponents/Bild.vue";
+import BackendFormular from "@/components/taskComponents/BackendFormular.vue";
 /**********************************End */
 export default {
   name: "Canvas",
@@ -126,7 +127,8 @@ export default {
     //******************************************zakaria
     diagramm,
     EchtButton,
-    Bild
+    Bild,
+    BackendFormular
     /*****************************************end */
   },
   props: {
