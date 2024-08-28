@@ -94,7 +94,7 @@
             
             // Berechne die Schrittgröße für die Ticks
             const stepSize = Math.round((Math.max.apply(Math, labels.value) / 10) / 5) * 5;
-            console.log('hier'+stepSize)
+            
             chartInstance = new Chart(ctx, {
               type: type.value || 'line',
               data: {
@@ -134,9 +134,16 @@
         }
       };
   
-      watch([datasets, labels, type], () => {
-        createChart();
-      }, { immediate: true });
+       // Watchers will wait for data to be ready
+    watch(
+      [datasets, labels, type, chartRef],
+      ([newDatasets, newLabels]) => {
+        if (newDatasets.length > 0 && newLabels.length > 0) {
+          createChart();
+        }
+      },
+      { immediate: true }
+    );
   
       onMounted(() => {
         createChart();
