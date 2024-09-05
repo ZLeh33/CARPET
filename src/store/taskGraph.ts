@@ -177,7 +177,8 @@ const getters = {
       else if (value) {
         return null;
       } else {
-        throw new Error(`Property not found in store: ${key}, ${value}, ${path}`);
+        // throw new Error(`Property not found in store: ${key}, ${value}, ${path}`);
+        return null;
       }
     }, state);
   }

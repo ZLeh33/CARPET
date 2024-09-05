@@ -67,6 +67,7 @@ import Navigation from "@/components/Navigation.vue";
 import Hint from "@/components/Hint.vue";
 import TextArea from "@/components/TextArea.vue";
 import Modal from "@/components/Modal.vue";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 import Matrix from "@/components/taskComponents/math/LinearAlgebra/Matrix.vue";
 import DOTGraph from "@/components/taskComponents/DOTGraph/DOTGraph.vue";

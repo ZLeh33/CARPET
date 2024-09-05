@@ -117,4 +117,16 @@ const pollWindowsProperty = async (context: Window, property: string, fn: Functi
   return pollClassProperty(context, property, fn, interval);
 };
 
-export { isEqualArrayContent, delay, pollGraphRender, pollDOMElementRender, pollWindowsProperty, pollClassProperty };
+const deepCopy = (obj: object) => {
+  return JSON.parse(JSON.stringify(obj));
+};
+
+export {
+  isEqualArrayContent,
+  delay,
+  pollGraphRender,
+  pollDOMElementRender,
+  pollWindowsProperty,
+  pollClassProperty,
+  deepCopy
+};

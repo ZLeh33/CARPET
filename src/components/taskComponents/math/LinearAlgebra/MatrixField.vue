@@ -27,7 +27,7 @@ export default {
     inputType: String,
     /****zakaria***/
     min: Number,
-    max:Number
+    max: Number
     /*****End***/
   },
   setup(props) {
@@ -55,7 +55,6 @@ export default {
       const [column, row] = index.split(",");
       let value = element.value === "" ? null : props.inputType === "number" ? parseFloat(element.value) : element.value;
       setProperty({ path: `${componentPath}__userData__${column}__${row}`, value });
-      checkValidity(event);
     };
 
     const setVisualCorrectness = (isCorrect: boolean, isSet: boolean, rowIndex: number, columnIndex: number) => {
@@ -81,9 +80,16 @@ export default {
 
     const validateMatrixField = (rowIndex: number, columnIndex: number) => {
       const userValue = userData.value[rowIndex][columnIndex];
-      const solutionValue = solutionData.value[rowIndex][columnIndex];
-      const isCorrect = userValue === solutionValue;
       const isSet = userData.value[rowIndex][columnIndex] != null;
+
+      let isCorrect = false;
+      if (solutionData.value && solutionData.value.length) {
+        const solutionValue = solutionData.value[rowIndex][columnIndex];
+        isCorrect = userValue === solutionValue;
+      } else {
+        // TODO: this is the range constraint introduced in fermentALADIN. Refactor Matrix-component to make this configurable
+        isCorrect = checkRangeValidity(userValue);
+      }
 
       // TODO: make global/constant enum variable in centralised place
       if (taskMode.value === "practice") setVisualCorrectness(isCorrect, isSet, rowIndex, columnIndex);
@@ -135,39 +141,16 @@ export default {
         }
       }
     );
-    /*******************************************      Zakaria ******************************************************/
-    const checkValidity = (event: Event) => {
-      const element = <HTMLInputElement>event.target;
-      const value = element.value ? parseFloat(element.value) : null;
-      
-      if (value < props.min || value > props.max) {
-        element.classList.add('out-of-range');
-        element.classList.remove('in-range');
-        let value:String = "invalid";
-        setProperty({ path: `${componentPath}__checkUserDataValidity`, value }); 
-      } else {
-        element.classList.remove('out-of-range');
-        element.classList.add('in-range');
-        let value:String = "valid";
-        setProperty({ path: `${componentPath}__checkUserDataValidity`, value }); 
-      }
+    const checkRangeValidity = (value: number) => {
+      if (props.min === undefined || props.max === undefined) return true;
+      return value < props.min || value > props.max ? false : true;
     };
-    /********************************************** End ******************************************************** */
-    
-    return { updateField , checkValidity };
+    return { updateField };
   }
 };
 </script>
 
 <style scoped>
-/************************************** Zakaria **************************/
-.out-of-range {
-  border: 7px solid red; /* Ändere die Breite der Linie und den Stil */
-}
-.in-range {
-  border: 7px solid green; /* Ändere die Breite der Linie und den Stil */
-}
-/************************************End  *******************************/
 .scalar {
   width: 30px;
   text-align: center;
