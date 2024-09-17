@@ -43,12 +43,17 @@
           :data-id="nodeComponentIds[item.i]"
         >
           <img class="dragHandler" :class="CONSTANTS.DRAGELEMENTCLASS" src="/img/drag_arrow.webp" />
-          <component
-            :is="nodeComponents[nodeComponentIds[item.i]].type"
-            :componentID="parseInt(nodeComponentIds[item.i])"
-            :storeObject="storeObject"
-            :componentPath="`nodes__${currentNode}__components__${parseInt(nodeComponentIds[item.i])}`"
-          ></component>
+          <div class="componentLayout">
+            <div class="componentLayout__Header">{{ nodeComponents[nodeComponentIds[item.i]].name }}</div>
+            <div class="componentLayout__Body">
+              <component
+                :is="nodeComponents[nodeComponentIds[item.i]].type"
+                :componentID="parseInt(nodeComponentIds[item.i])"
+                :storeObject="storeObject"
+                :componentPath="`nodes__${currentNode}__components__${parseInt(nodeComponentIds[item.i])}`"
+              ></component>
+            </div>
+          </div>
         </grid-item>
       </grid-layout>
     </div>
@@ -344,6 +349,27 @@ export default {
     linear-gradient(to bottom, lightgrey 1px, transparent 1px);
   background-repeat: repeat;
   background-size: calc(calc(100% - 5px) / 12) 40px;
+}
+
+.componentLayout {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.componentLayout__Header {
+  background-color: #f3f3f3;
+  border-bottom: 1px solid black;
+  padding: 5px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.componentLayout__Body {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
 }
 </style>
 

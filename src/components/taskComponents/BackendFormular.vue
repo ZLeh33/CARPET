@@ -85,6 +85,7 @@ export default {
     let actions = ref(getProperty(`${path}__component__actions`));
 
     const updateActions = () => {
+      return true;
       actions.value = actions.value.map((action) => {
         const valid = action.dependsOn.every((path) => {
           return getProperty(path);
