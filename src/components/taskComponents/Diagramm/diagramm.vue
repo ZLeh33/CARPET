@@ -78,6 +78,8 @@
       const chartRef = ref<HTMLCanvasElement | null>(null);
   
       let chartInstance: Chart | null = null;
+
+      
   
       const createChart = () => {
         if (datasets.value.length > 0 && chartRef.value) {
@@ -134,16 +136,9 @@
         }
       };
   
-       // Watchers will wait for data to be ready
-    watch(
-      [datasets, labels, type, chartRef],
-      ([newDatasets, newLabels]) => {
-        if (newDatasets.length > 0 && newLabels.length > 0) {
-          createChart();
-        }
-      },
-      { immediate: true }
-    );
+      watch([datasets, labels, type, chartRef], () => {
+        createChart();
+      }, { immediate: true });
   
       onMounted(() => {
         createChart();
