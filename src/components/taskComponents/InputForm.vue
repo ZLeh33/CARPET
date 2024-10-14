@@ -1,5 +1,6 @@
 <template>
   <div class="parameter_form">
+    <h2>{{ title }}</h2>
     <div class="parameter_form_columns">
       <div class="parameter_labels">
         <p
@@ -22,7 +23,6 @@
         />
       </div>
     </div>
-    <ActionButtons :actions="actions" :actionTypes="actionTypes" />
   </div>
 </template>
 
@@ -34,6 +34,7 @@ import CheckboxFormField from "@/components/taskComponents/form/CheckboxFormFiel
 import ValueFormField from "@/components/taskComponents/form/ValueFormField.vue";
 import DualSlider from "@/components/taskComponents/form/DualSlider.vue";
 import ActionButtons from "@/components/taskComponents/mixins/ActionButtons.vue";
+import { unref } from "vue";
 
 export default {
   props: {
@@ -68,7 +69,6 @@ export default {
     );
 
     const title = getProperty(`${path}__component__title`);
-
     const elements = computed(() => getProperty(`${path}__component__form`));
 
     const updateElement = (event: Event) => {
@@ -77,54 +77,34 @@ export default {
       const payload = type === "checkbox" ? checked : value;
       const elementPath = `${path}__component__form__${className}`;
       setProperty({ path: elementPath, value: payload });
-      updateActions();
+      validate(elementPath, value);
     };
 
-    let actions = ref(getProperty(`${path}__component__actions`));
+    const validatecomponent = () => {
+      setProperty({ path: `nodes__${currentNode}__components__${props.componentID}__isValid`, value: true });
 
-    const updateActions = () => {
-      actions.value = actions.value.map((action) => {
-        const valid = action.dependsOn.every((fieldId) => {
-          const formfield: HTMLInputElement = document.querySelector(`input[class^="${fieldId}"]`);
-          return !Array.from(formfield.classList).includes("invalid");
-        });
-        action.disabled = valid ? false : true;
-        return action;
-      });
+      for (const [key, element] of Object.entries(elements)) {
+        const isValid = element.isValid;
+
+        if (isValid == false) {
+          setProperty({ path: `nodes__${currentNode}__components__${props.componentID}__isValid`, value: true });
+        }
+      }
     };
 
-    const preparePayload = (instruction) => {
-      const parameters: { [key: string]: any } = Object.entries(elements.value).reduce(
-        (parameters, [name, parameter]: [string, { [key: string]: any }]) => {
-          const { formType, initial } = parameter;
-          let payload = { ...parameters, [name]: initial };
-          if (formType === "RangeFormField") payload[name] = [initial.lowerValue, initial.upperValue];
-          if (formType === "ValueFormField") payload[name] = parameter.value;
-          return payload;
-        },
-        {}
-      );
-      const payload: { [key: string]: any } = { parameters };
-      payload.type = currentTask.value;
-      payload.task = currentTask.value;
-      payload.instruction = instruction;
-      return payload;
+    const validate = (elementPath: string, payload: string) => {
+      store.setProperty({ path: `${path}__validation`, value: validate });
+
+      const datainput = unref(store).getProperty(`taskData__Position`);
+      if (datainput == payload) {
+        setProperty({ path: `${elementPath}__isValid`, value: true });
+        validatecomponent();
+        console.log("erfolg");
+      } else {
+        setProperty({ path: `${elementPath}__isValid`, value: false });
+      }
     };
-
-    const currentTask = computed(() => getProperty("currentTask"));
-
-    const fetchData = (instruction) => {
-      store.dispatch("fetchTaskData", {
-        payload: preparePayload(instruction),
-        endpoint: `${currentTask.value}/${instruction}`
-      });
-    };
-
-    const actionTypes = {
-      fetchData
-    };
-
-    return { elements, updateElement, actions, actionTypes, title };
+    return { elements, updateElement, title };
   }
 };
 </script>

@@ -86,7 +86,7 @@ const mutations = {
 
     // save state on every mutation as a side effect for task replay - if a change was recorded
     if (changingState) {
-      console.log(path, value);
+      //onsole.log(path, value);
       // for debugging purposes
       state.taskReplay.steps.push({ timestamp: new Date().getTime(), ...JSON.parse(JSON.stringify(payload)) });
     }
@@ -125,7 +125,7 @@ const actions = {
     const replay = state.taskReplay;
     replay.meta = extractMetaInformation(state, replay);
     const hash = await axios.post("/api/storeReplay", { replay: JSON.stringify(replay) });
-    console.log(hash);
+    //console.log(hash);
   },
   setRestoredFromReplay: async ({ commit }) => {
     commit("RESTORED_FROM_REPLAY");
@@ -133,8 +133,10 @@ const actions = {
   resetStore: async ({ commit }) => {
     commit("RESET");
   },
+
   fetchTaskData: async ({ commit, dispatch }, payloadObject: { [key: string]: any }) => {
     // await dispatch("fetchTaskGraph");
+    //console.log(payloadObject);
     const { endpoint, payload } = payloadObject;
     // TODO extract language to seperate user module
     const result = await axios.post(`/api/${endpoint}`, { ...payload, language: "de" });
@@ -163,11 +165,24 @@ const actions = {
   },
   setPropertyFromPath: async ({ commit }, payload: { path: string; value: any }) => {
     commit("SET_PROPERTY", payload);
+  },
+  /* Schnittstelle, für die Übertragung des erstellen Graphen an ALADIN */
+  fetchSolution: async ({}, payload: Object) => {
+    const result = await axios({
+      method: 'POST',
+      url: 'http://localhost:8000/api/decisiontree/decisionTreeValidator',
+      headers: {
+        "Content-Type": "application/json"
+      },
+      data: JSON.stringify({ graph: payload, type: 'decisiontree', instruction: 'decisionTreeValidator' })
+    });
+    return result.data;
   }
 };
 const getters = {
   getPropertyFromPath: (state: IState) => (path: string) => {
     if (typeof path !== "string") {
+      console.log(path);
       throw new Error(`Path is not a string: ${path}`);
     }
     const splitPath = path.split("__");

@@ -9,6 +9,7 @@
     :value="element"
     :min="min"
     :max="max"
+    step="any"
   />
   <!-- min max zakaria-->
 </template>
