@@ -6,6 +6,7 @@
     :step="element.step"
     oninput="this.reportValidity()"
     @keyup="emitEvent"
+    @focus="selectText"
   />
 </template>
 
@@ -48,19 +49,25 @@ export default {
           path: `nodes__${currentNode.value}__components__${props.componentID}__component__form__seed__value`,
           value: value
         });
+          event.target.blur();
           /************************************End *************************************************/
           evaluateValue(props);
           emit("updateElement", event);
+          
         },
         500
       );
     };
+    const selectText = (event) =>  {
+      event.target.select(); // Wählt den gesamten Inhalt des Input-Felds aus
+
+    }
     watch(lokalvalue,emitEvent);
     onMounted(() => {
       evaluateValue(props);
     });
 
-    return { emitEvent };
+    return { emitEvent,selectText };
   },
 };
 </script>

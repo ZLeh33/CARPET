@@ -82,6 +82,7 @@ export default {
         };
 
     let actions = ref(getProperty(`${path}__component__actions`));
+    //console.log("hier: ",getProperty(`${path}__component__actions`));
     
     const updateActions = () => {
         
@@ -131,7 +132,7 @@ export default {
     const fetchData = (instruction) => {
         /******** Zakaria : nur zum testen was ist das Ergebnis von preparePayload-methode */
         const payload = preparePayload(instruction);
-        console.log("Payload:", payload); // Ausgabe des Payloads in der Konsole
+        //console.log("Payload:", payload); // Ausgabe des Payloads in der Konsole
         /***********End  ******************/
         store.dispatch("fetchTaskData", {
             payload: preparePayload(instruction),

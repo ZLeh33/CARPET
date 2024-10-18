@@ -1,6 +1,6 @@
 <template>
   <ContextMenu :componentId="id" :methods="selectedMethods" :storeObject="storeObject">
-    <table :id="`matrix_${id}`" class="matrix">
+    <table :id="`matrix_${id}`" class="matrix" :style="{ height: `calc( 100% - 25px )` }">
       <tr v-if="columnLabel && columnLabel.length">
         <p class="placeholder">&nbsp;</p>
         <!--zakaria span mouseover-->
@@ -550,8 +550,6 @@ input::-webkit-inner-spin-button {
 
 .matrix {
   width: 100%;
-  min-height: 100%;
-  height: 100%;
   border-collapse: collapse;
   table-layout: auto;
 }
@@ -585,12 +583,12 @@ th {
 }
 
 .column_label {
-  /*writing-mode: horizontal-tb;
+  writing-mode: horizontal-tb;
   /*
-  /* writing-mode: vertical-rl; */
-   text-orientation: upright; */
+  writing-mode: vertical-rl; */
+  /*  text-orientation: upright; */
   /* transform: rotate(180deg); */
-  /* display: flex; */
+  display: flex;
   /* align-items: center; */
 }
 
