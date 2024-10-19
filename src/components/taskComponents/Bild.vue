@@ -1,21 +1,19 @@
 <!--**************************************************************** Zakaria *********************************** -->
 <template>
-    <div class="container">
+    <div class="image-container">
         <img :src="bildPath" alt="Bild konnte nicht hochgeladen werden!!!" class="background-image">
         <template v-if="inputFelder">
-            <div class="flex-container">
-                <input   
-                    class="input-field"
-                    v-for="(input, index) in inputFelder"
-                    :key="index"
-                    :type="input.type"
-                    :id="'input' + (index + 1)"
-                    :placeholder="handlePlaceholder(input.placeholder)"
-                    @input="handleInput(input.placeholder, $event)"
-                    :style="{
-                        width: input.width
-                    }"
-                >
+            <div class="form-container">
+                <div class="input-container" v-for="(input, index) in inputFelder" :key="index" @mouseover="handleMouseOver(index,input.placeholder)" @mouseleave="handleMouseLeave(index)">
+                    <span v-if="tooltipVisible[index]" id="tooltiptext" v-html="tooltipMessage[index]"></span>
+                    <input   
+                        class="input-field"
+                        :type="input.type"
+                        :id="'input' + (index + 1)"
+                        :placeholder="handlePlaceholder(input.placeholder)"
+                        @input="handleInput(input.placeholder, $event)"
+                    >
+                </div>
                 
             </div>
         </template>
@@ -25,7 +23,8 @@
 
 
 <script lang="ts">
-    import { defineComponent, computed, ref, watch } from 'vue';
+    import { isNumber } from 'lodash';
+import { defineComponent, computed, ref, watch } from 'vue';
 
     export default defineComponent({
         props: {
@@ -85,32 +84,59 @@
             // Function to handle input events
             const handleInput = (placeholder: string, event: Event) => {
                 const target = event.target as HTMLInputElement;
-                const value = parseFloat(target.value);
-                if (isNaN(value)) target.value = '0';
+                const value = target.value;
+                // Prüfe, ob der Wert eine gültige Zahl ist
+                let parsedValue = parseFloat(value.replace(",", "."));
+                // Wenn die Eingabe ungültig ist (z. B. Buchstaben), setze den Wert auf '0'
+                if (isNaN(parsedValue)) {
+                    target.value = '';
+                    parsedValue = 0;
+                }
+
+                //Zum Test
+                console.log("Test Eingabefeld  "+placeholder+" : ",parsedValue);
                 if (placeholder in inputFelderValues.value) {
-                    inputFelderValues.value[placeholder] = value;
+                    inputFelderValues.value[placeholder] = parsedValue;
                 }
                 setProperty({ path: `${componentPath.value}__inputFelderValues`, value: inputFelderValues });
                 
             };
+            // Tooltip-Status und -Nachricht verwalten
+            const tooltipVisible = ref<boolean[]>([]);
+            const tooltipMessage = ref<string[]>([]);
+            // Funktion zum Handhaben des Mouseover-Ereignisses
+            const handleMouseOver = (index:number ,placeholder:String) => {
+                const parts = placeholder.split(' ');
+                tooltipMessage.value[index] = parts.length === 2 
+                    ? `${parts[0]}<sub>${parts[1]}</sub>` 
+                    : parts.join(' ');
+                tooltipVisible.value[index] = true;
+            };
+
+            // Funktion zum Handhaben des Mouseleave-Ereignisses
+            const handleMouseLeave = (index:number) => {
+            tooltipVisible.value[index] = false; // Tooltip unsichtbar machen
+            };
             // Funktion zum Handhaben des Mouseover-Ereignisses
             const handlePlaceholder = (nachricht: String) => {
-                const neueNachricht = nachricht.split(' ');
-                if (neueNachricht.length < 2) {
-                    return nachricht;
+                let parts = nachricht.split(' ');
+                if (parts.length === 2) {
+                    return `${parts[0]}`; // str1 + tiefgestelltes str2
                 }
-                return nachricht;
-                //return `${neueNachricht[0]} <sub>${neueNachricht[1]}</sub>`;
+                return parts; // Wenn nicht zwei Teile, einfach den ursprünglichen Wert zurückgeben
             };
             
-
             // Rückgabe der berechneten Werte zur Nutzung in der Template
             return {
                 bildPath,
                 inputFelder,
                 inputFelderValues,
                 handlePlaceholder,
-                handleInput
+                handleInput,
+                handleMouseOver,
+                handleMouseLeave,
+                tooltipMessage,
+                tooltipVisible
             };
         }
     });
@@ -118,10 +144,11 @@
 
 
 <style>
-.container {
+.image-container {
     position: relative;
     width: 100%;
     height: 100%;
+    margin: 0 auto;
 }
 
 .background-image {
@@ -130,25 +157,64 @@
     height: 100%;
     object-fit: cover; /* Skaliert das Bild, um den gesamten Container auszufüllen */
 }
-
+/*
 .flex-container {
     display: flex;
     flex-direction: row; /* Oder row, je nach Layout-Anforderung */
-    flex-wrap: wrap;
+    /*flex-wrap: wrap;
     top: 2em;
     justify-content: space-between; /* Beispiel-Ausrichtung**/ 
     /*align-items: center;  Beispiel-Ausrichtung */
-    gap: 100px; /* Abstand zwischen den Input-Feldern */
+    /*gap: 100px; /* Abstand zwischen den Input-Feldern */
+    /*position: absolute;
+    
+    
+}*/
+.input-container {
+    position: relative; /* Positioning context for tooltip */
+}
+
+
+.form-container {
+    position: absolute; /* Positioniert die Input-Felder relativ zum Container */
+    top: 55%; /* Zentriert vertikal */
+    left: 50%; /* Zentriert horizontal */
+    transform: translate(-50%, -50%); /* Verschiebt um die Hälfte der Größe */
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 Spalten mit gleicher Breite */
+    grid-template-rows: repeat(3, 1fr); /* 3 Zeilen, die sich automatisch anpassen */
+    column-gap: calc(50% + 10px); /* Abstand zwischen den Spalten */
+    row-gap: calc(1% + 1vh); /* Abstand zwischen den Zeilen */
+    width: 90%; /* Breite der Input-Felder relativ zum Container */
+    height: 90%;
+    align-items: stretch;
+}
+
+#tooltiptext {
+    top: 28%;
     position: absolute;
-    
-    
+    background-color: white;
+    color: black;
+    border: 1px solid #ccc;
+    width: 100%; /* Vollständige Breite des Grid-Items */
+    height: 30%; /* Automatische Höhe */
+    font-size: 1.5vw; /* Schriftgröße in Viewport-Breite */
+    text-align: center;
+    box-sizing: border-box; /* Berücksichtigt Padding und Rand in der Breite */
+    border-radius: 30px;
+    font-family: cursive;
+    z-index: 1000;
 }
 
 .input-field {
     background: gray;
     color: black;
     border: 1px solid #ccc;
-    padding: 5px;
+    width: 100%; /* Vollständige Breite des Grid-Items */
+    height: 30%; /* Automatische Höhe */
+    font-size: 1vw; /* Schriftgröße in Viewport-Breite */
+    text-align: center;
+    box-sizing: border-box; /* Berücksichtigt Padding und Rand in der Breite */
     border-radius: 30px;
     font-family: cursive;
 }
@@ -157,6 +223,15 @@
 .input-field::placeholder {
     color: black;
 }
+.input-field:focus {
+    outline: none; /* Entfernt den Standardrahmen */
+    border: 2px solid black; /* Blauer Rahmen bei Fokus */
+    box-shadow: 0 0 5px black; /* Sanfte Schattierung */
+}
+.input-container {
+    position: relative; /* Positioning context for tooltip */
+}
+
 
 /*************************************************************End  **********************************/
 
