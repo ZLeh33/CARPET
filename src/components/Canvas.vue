@@ -39,16 +39,21 @@
           :drag-allow-from="`.${CONSTANTS.DRAGELEMENTCLASS}`"
           @move="setCoordinates"
           @resize="updateDimensions"
-          :preserveAspectRatio="item.preserveAspectRatio ?? true"
+          :preserveAspectRatio="item.preserveAspectRatio ?? false"
           :data-id="nodeComponentIds[item.i]"
         >
           <img class="dragHandler" :class="CONSTANTS.DRAGELEMENTCLASS" src="/img/drag_arrow.webp" />
-          <component
-            :is="nodeComponents[nodeComponentIds[item.i]].type"
-            :componentID="parseInt(nodeComponentIds[item.i])"
-            :storeObject="storeObject"
-            :componentPath="`nodes__${currentNode}__components__${parseInt(nodeComponentIds[item.i])}`"
-          ></component>
+          <div class="componentLayout">
+            <div class="componentLayout__Header">{{ nodeComponents[nodeComponentIds[item.i]].name }}</div>
+            <div class="componentLayout__Body">
+              <component
+                :is="nodeComponents[nodeComponentIds[item.i]].type"
+                :componentID="parseInt(nodeComponentIds[item.i])"
+                :storeObject="storeObject"
+                :componentPath="`nodes__${currentNode}__components__${parseInt(nodeComponentIds[item.i])}`"
+              ></component>
+            </div>
+          </div>
         </grid-item>
       </grid-layout>
     </div>
@@ -67,6 +72,7 @@ import Navigation from "@/components/Navigation.vue";
 import Hint from "@/components/Hint.vue";
 import TextArea from "@/components/TextArea.vue";
 import Modal from "@/components/Modal.vue";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 import Matrix from "@/components/taskComponents/math/LinearAlgebra/Matrix.vue";
 import DOTGraph from "@/components/taskComponents/DOTGraph/DOTGraph.vue";
@@ -88,12 +94,10 @@ import GanttDiagram from "@/components/taskComponents/scheduling/GanttDiagram.vu
 import ManipulatableGraph from "@/components/taskComponents/ManipulatableGraph/ManipulatableGraph.vue";
 import ItemPallet from "@/components/taskComponents/DragDrop/ItemPallet/ItemPallet.vue";
 import MoleculeEditor from "@/components/taskComponents/Chemistry/MoleculeEditor/MoleculeEditor.vue";
-/******************************zakaria  *********************************************/
-import diagramm from "@/components/taskComponents/Diagramm/diagramm.vue";
+import Chart from "@/components/taskComponents/Charts/Chart.vue";
 import EchtButton from "@/components/taskComponents/EchtButton.vue";
 import Bild from "@/components/taskComponents/Bild.vue";
 import BackendFormular from "@/components/taskComponents/BackendFormular.vue";
-/**********************************End *********************************************/
 export default {
   name: "Canvas",
   components: {
@@ -124,12 +128,10 @@ export default {
     PlanGraph,
     EditableGraph,
     GanttDiagram,
-    //******************************************Zakaria*****************************/
-    diagramm,
+    Chart,
     EchtButton,
     Bild,
     BackendFormular
-    /*****************************************End *********************************/
   },
   props: {
     storeObject: Object
@@ -347,6 +349,27 @@ export default {
     linear-gradient(to bottom, lightgrey 1px, transparent 1px);
   background-repeat: repeat;
   background-size: calc(calc(100% - 5px) / 12) 40px;
+}
+
+.componentLayout {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.componentLayout__Header {
+  background-color: #f3f3f3;
+  border-bottom: 1px solid black;
+  padding: 5px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.componentLayout__Body {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
 }
 </style>
 
