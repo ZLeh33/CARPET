@@ -54,6 +54,21 @@ export default {
       const { index } = <{ index: string }>element.dataset;
       const [column, row] = index.split(",");
       let value = element.value === "" ? null : props.inputType === "number" ? parseFloat(element.value) : element.value;
+      if (value !== null && props.inputType === "number") {
+        value = value.toString();
+        if (value.includes(",")) {
+          // Ersetze das Komma mit einem Punkt, um es in eine gültige Zahl umzuwandeln
+          value = value.replace(",", ".");
+        }
+        // Versuche nun, den Wert als Zahl zu parsen
+        value = parseFloat(value);
+      }
+      else {
+        element.value = element.min;
+        value = element.value;
+      }
+      //Zum Test
+      console.log("Test MatrixField: ",value);
       setProperty({ path: `${componentPath}__userData__${column}__${row}`, value });
       checkValidity(event);
     };
@@ -142,11 +157,26 @@ export default {
         }
       }
     );
-    const checkRangeValidity = (value: number) => {
-      if (props.min === undefined || props.max === undefined) return true;
-      return value < props.min || value > props.max ? false : true;
+    /*******************************************      Zakaria ******************************************************/
+    const checkValidity = (event: Event) => {
+      const element = <HTMLInputElement>event.target;
+      const value = element.value ? parseFloat(element.value) : null;
+      
+      if (value < props.min || value > props.max) {
+        element.classList.add('out-of-range');
+        element.classList.remove('in-range');
+        let value:boolean = false;
+        setProperty({ path: `nodes__${currentNode.value}__components__${props.componentID}__isValid`, value }); 
+      } else {
+        element.classList.remove('out-of-range');
+        element.classList.add('in-range');
+        let value:boolean = true;
+        setProperty({ path: `nodes__${currentNode.value}__components__${props.componentID}__isValid`, value }); 
+      }
     };
-    return { updateField };
+    /********************************************** End ******************************************************** */
+    
+    return { updateField , checkValidity };
   }
 };
 </script>
