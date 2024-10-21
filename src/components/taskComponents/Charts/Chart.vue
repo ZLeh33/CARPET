@@ -1,5 +1,7 @@
 <template>
   <canvas :id="chartId" class="chartContainer" ref="chartRef"></canvas>
+  <button @click="saveAsImage">Herunterladen</button>
+
 </template>
 
 <script lang="ts">
@@ -76,16 +78,70 @@ export default defineComponent({
                 label: item.label,
                 data: item.data,
                 borderColor: item.borderColor,
-                backgroundColor: item.backgroundColor
+                backgroundColor: item.backgroundColor,
+                tension: item.tension, 
+                cubicInterpolationMode: item.cubicInterpolationMode, 
               }))
             },
-            options: options.value
+            options: {
+              responsive: true,
+              plugins: {
+                legend: {
+                  display: true
+            }
+          },
+          elements: {
+            line: {
+              tension: 0.4 // Apply smooth curve to all lines
+            },
+            point: {
+              radius: 0 // Hide data points for a cleaner look
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                font: {
+                  size: 14
+                }},
+              
+              title: {
+                display: true,
+                text: "Zeit in h",
+                font: {
+                        size: 20
+                      }
+            }
+          },
+            y: {
+              display: true
+            }
+          },
+          plugins: {
+                legend: {
+                  labels: {
+                    font: {
+                      size: 20
+                    }
+                  }
+                }
+              }
+        }
           });
         } else {
           console.error("Unable to get context from canvas.");
         }
       } else {
         console.error("No datasets available to display chart.");
+      }
+    };
+
+    const saveAsImage = () => {
+      if (chartRef.value) {
+        const link = document.createElement('a');
+        link.href = chartRef.value.toDataURL('image/png');
+        link.download = 'chart.png';
+        link.click();
       }
     };
 
@@ -100,7 +156,8 @@ export default defineComponent({
     return {
       datasets,
       chartId,
-      chartRef
+      chartRef,
+      saveAsImage
     };
   }
 });
@@ -119,4 +176,20 @@ h1 {
   width: 100%;
   height: 100%;
 }
+
+button {
+  margin-top: 10px;
+  color: orange; /* Text color */
+  background-color: black; /* Background color */
+  border: none; /* Remove border */
+  padding: 10px 20px; /* Add some padding */
+  font-size: 16px; /* Adjust font size */
+  cursor: pointer; /* Change cursor on hover */
+}
+
+button:hover {
+  background-color: darkorange; /* Optional hover effect */
+  color: black;
+}
+
 </style>
