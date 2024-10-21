@@ -96,16 +96,9 @@ export default {
 
     const validateMatrixField = (rowIndex: number, columnIndex: number) => {
       const userValue = userData.value[rowIndex][columnIndex];
+      const solutionValue = solutionData.value[rowIndex][columnIndex];
+      const isCorrect = userValue === solutionValue;
       const isSet = userData.value[rowIndex][columnIndex] != null;
-
-      let isCorrect = false;
-      if (solutionData.value && solutionData.value.length) {
-        const solutionValue = solutionData.value[rowIndex][columnIndex];
-        isCorrect = userValue === solutionValue;
-      } else {
-        // TODO: this is the range constraint introduced in fermentALADIN. Refactor Matrix-component to make this configurable
-        isCorrect = checkRangeValidity(userValue);
-      }
 
       // TODO: make global/constant enum variable in centralised place
       if (taskMode.value === "practice") setVisualCorrectness(isCorrect, isSet, rowIndex, columnIndex);
