@@ -198,7 +198,7 @@ import { defineComponent, computed, ref, watch } from 'vue';
     border: 1px solid #ccc;
     width: 100%; /* Vollständige Breite des Grid-Items */
     height: 30%; /* Automatische Höhe */
-    font-size: 1.5vw; /* Schriftgröße in Viewport-Breite */
+    font-size: 1vw; /* Schriftgröße in Viewport-Breite */
     text-align: center;
     box-sizing: border-box; /* Berücksichtigt Padding und Rand in der Breite */
     border-radius: 30px;
