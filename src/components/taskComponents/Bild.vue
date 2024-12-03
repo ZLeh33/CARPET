@@ -24,7 +24,7 @@
 
 <script lang="ts">
     import { isNumber } from 'lodash';
-import { defineComponent, computed, ref, watch } from 'vue';
+    import { defineComponent, computed, ref, watch } from 'vue';
 
     export default defineComponent({
         props: {

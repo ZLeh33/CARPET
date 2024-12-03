@@ -7,6 +7,7 @@
     oninput="this.reportValidity()"
     @keyup="emitEvent"
     @focus="selectText"
+    v-if="readOnly" readonly
   />
 </template>
 
@@ -48,7 +49,7 @@ export default {
           setProperty({
           path: `nodes__${currentNode.value}__components__${props.componentID}__component__form__seed__value`,
           value: value
-        });
+          });
           event.target.blur();
           /************************************End *************************************************/
           evaluateValue(props);
@@ -58,6 +59,8 @@ export default {
         500
       );
     };
+
+    const readOnly = computed(()=> `nodes__${currentNode.value}__components__${props.componentID}__component__form__seed__readOnly` );
     const selectText = (event) =>  {
       event.target.select(); // Wählt den gesamten Inhalt des Input-Felds aus
 
@@ -67,7 +70,7 @@ export default {
       evaluateValue(props);
     });
 
-    return { emitEvent,selectText };
+    return { emitEvent,selectText, readOnly };
   },
 };
 </script>

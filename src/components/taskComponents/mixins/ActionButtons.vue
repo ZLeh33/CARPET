@@ -47,12 +47,14 @@ export default {
 <style scoped>
 .actions {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 10vw;
   height: 10vh;
   cursor: default;
   opacity: 1;
+  gap: 10px;
 }
 
 .disabled {

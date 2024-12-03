@@ -11,24 +11,24 @@
             </th>
           </tr>
           <tr v-for="(row, i) in userData" :key="i">
-          <th v-if="rowLabel && rowLabel.length">
-            <p  v-if="rowAnzahl != undefined" class="matrix_label row_label">{{ rowLabel[0] +" "+(i+1)}}</p>
-            <p  v-else class="matrix_label row_label"> {{ rowLabel[i]  }}</p>
-          </th>
-          <td class="matrix_element" v-for="(element, j) in userData[i]" :key="j">
-            <!-- zakaria min max-->
-            <MatrixField
-              :min="getMinValueForColumn(columnLabel[j])"
-              :max="getMaxValueForColumn(columnLabel[j])"
-              :rowIndex="i"
-              :columnIndex="j"
-              :storeObject="storeObject"
-              :componentID="id"
-              :isReadOnly="isReadOnly"
-              :element="element"
-              :inputType="inputType ?? 'number'"
-            />
-          </td>
+            <th v-if="rowLabel && rowLabel.length">
+              <p  v-if="rowAnzahl !== undefined || userDataFromJsonPath !== null" class="matrix_label row_label">{{ rowLabel[0] +" "+(i+1)}}</p>
+              <p  v-else class="matrix_label row_label"> {{ rowLabel[i]  }}</p>
+            </th>
+            <td class="matrix_element" v-for="(element, j) in userData[i]" :key="j">
+              <!-- zakaria min max-->
+              <MatrixField
+                :min="getMinValueForColumn(columnLabel[j])"
+                :max="getMaxValueForColumn(columnLabel[j])"
+                :rowIndex="i"
+                :columnIndex="j"
+                :storeObject="storeObject"
+                :componentID="id"
+                :isReadOnly="isReadOnly"
+                :element="element"
+                :inputType="inputType ?? 'number'"
+              />
+            </td>
         </tr>
       </table>
     </div>
@@ -106,17 +106,100 @@ export default {
       } else return [];
     };
 
-    const userData = computed(() => loadData(`${componentPath}__userData`));
+    //const userData = computed(() => loadData(`${componentPath}__userData`));
     const solutionData = computed(() => loadData(`${componentPath}__solutionData`));
     const validationData = computed(() => loadData(`${componentPath}__validationData`));
 
-    //************************************************************ Zakaria ************************************/
+    //************************************************************  ************************************/
+    const userDataFromJsonPath = ref<string | null>(null);
+    const userData = ref<any[]>([]);
     let rowAnzahl = undefined;
     let standardZeile = undefined;
-    let newData = []; // Initialisiere ein neues Array, um die duplizierten Daten zu speichern
+
+
+    const loadJSONData = async (path: string): Promise<object | null> => {
+      try {
+        const response = await fetch(path);
+        if (!response.ok) {
+          console.error('Netzwerkantwort war nicht ok');
+          return null;
+        }
+        const jsonData = await response.json();
+        return jsonData;
+      } catch (error) {
+        console.error('Fehler beim Laden der JSON-Datei:', error);
+        return null;
+      }
+    };
+    const transformData = (data: Object): Array<any> => {
+      
+      let tempArrays: Array<any> = [];
+
+      // Iteriere über die Items im Datenobjekt
+      for (const [key, value] of Object.entries(data)) {
+        if (typeof value === 'object' && !Array.isArray(value)) {
+          // Wenn der Wert ein Objekt ist, füge die Werte des Objekts hinzu
+          const values = Object.values(value);
+
+          // Bearbeite die Werte des Objekts
+          for (let i = 0; i < values.length; i++) {
+            const r = values[i];
+            if (typeof r === 'number') {
+              values[i] = Math.floor(r); // Wandelt Zahlen in Integer um
+            } else if (Array.isArray(r)) {
+              values[i] = r.map(val => parseFloat(val)); // Wandelt Arrays in Floats um
+            }
+          }
+
+          tempArrays.push(values); // Füge das Array der temporären Liste hinzu
+        } else {
+          // Wenn der Wert kein Objekt ist, füge den Wert direkt hinzu
+          tempArrays.push([value]);
+        }
+      }
+      
+      tempArrays = [...tempArrays.slice(2,9)]
+      // Entferne überflüssige Verschachtelungen
+      tempArrays = tempArrays.map(arr => arr.flat());
+      // Ergebnismatrix erstellen
+      let result: any[] = [];
+      for (let i = 0; i < 4; i++) {
+        let row: any[] = [];
+        for(let j=0 ; j < 7 ; j++){
+          row.push(tempArrays[j][i]);
+        }
+        result.push(row);
+      }
+      return result;
+    };
+
+    const builduserData = (obj : Object) =>{
+      const data = transformData(obj["Startparameter"]);
+      //userData = [...data.slice(2)]; // Kopiere alle Elemente ab dem zweiten Array
+      //console.log(newData);
+      //userData.value = [...data.slice(2,9)];
+      //setProperty({ path: `${componentPath}__userData`, value:userData });
+      userData.value = data;
+      console.log(userData);
+    };
+    
+    onMounted(async () => {
+      // Annahme: getProperty gibt einen string oder null zurück
+      const computedPath = computed(() => getProperty(`${componentPath}__userDataFromJsonPath`));
+      //console.log(computedPath.value);
+      //const computedPath = computed(() => `/json/tasks/FermentExercises/FermentALADIN_Aufgaben.json`);
+      if (computedPath.value) {
+        userDataFromJsonPath.value = computedPath.value; // Wert zuweisen
+        const datatmp : Array<any>= await loadJSONData(computedPath.value);
+        builduserData(datatmp);
+      } else {
+        console.error('Fehler: Kein gültiger Pfad gefunden.');
+      }
+    });
+    
     // Überprüfen, ob die Property für die Anzahl der Zeilen existiert
     const rowAnzahlCheck = getProperty(`${componentPath}__rowAnzahl`);
-    if (rowAnzahlCheck != null) {
+    if (rowAnzahlCheck != undefined) {
       // die Anzahl der Zeilen laden
       rowAnzahl = computed(() => loadIntZahl(getProperty(`${componentPath}__rowAnzahl`)));
       standardZeile = computed(() => loadData(`${componentPath}__standardZeile`));
@@ -128,7 +211,7 @@ export default {
     }
     
     
-    
+    let newData = []; // Initialisiere ein neues Array, um die duplizierten Daten zu speichern
     let i = 0; // Zähler für die Schleife
     // Überwacht Änderungen an 'rowAnzahl' und aktualisiert 'newData' entsprechend
     watchEffect(() => {
@@ -138,7 +221,6 @@ export default {
         // Wenn 'rowAnzahl.value' größer oder gleich dem aktuellen Wert von 'i' ist
         if (rowAnzahl.value >= i) {
           // Schleife von 'i' bis 'rowAnzahl.value' 
-
           for (i; i < rowAnzahl.value; i++) {
             // Füge 'standardSpalte' zu 'newData' hinzu
             newData.push([...standardZeile?.value]);
@@ -160,7 +242,6 @@ export default {
     // Min- und Max-Werte für jede Spalte  überwachen
     // Erstelle ein computed-Property, das die Daten für die Spaltenbereiche lädt
     const columnRange = computed(() => loadColumnRangeData(`${componentPath}__columnRange`));
-
     // Funktion zum Laden der Spaltenbereichsdaten
     const loadColumnRangeData = (path) => {
         // Holen Sie sich die Spaltenbereichsdaten
@@ -523,7 +604,8 @@ export default {
       handleMouseLeave,
       rowAnzahl,
       newData,
-      spaltenMaxSumme
+      spaltenMaxSumme,
+      userDataFromJsonPath
       /********************************************************************end */
     };
   }
