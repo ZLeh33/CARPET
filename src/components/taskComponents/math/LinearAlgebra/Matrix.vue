@@ -203,18 +203,28 @@ export default {
       // Falls der Schlüssel nicht gefunden wurde
       return undefined;
     };
-
-    /**
-        const builduserData = (obj : Object, key : string) =>{
-      const data = transformData(obj[key]);
-      //userData = [...data.slice(2)]; // Kopiere alle Elemente ab dem zweiten Array
-      //console.log(newData);
-      //userData.value = [...data.slice(2,9)];
-      //setProperty({ path: `${componentPath}__userData`, value:userData });
-      userData.value = data;
-      console.log(userData);
+    
+    /*
+    const builduserData = (jsonData: Record<string, any>, key: string): void => {
+      let data : any = findKey(jsonData,key);
+      if(data !== undefined){
+        data = transformData(data); // Daten transformieren
+        //userData.value = data;
+        let newData: any[] = [];
+        for (let i = 0; i < 4; i++) {
+          newData.push(data[i]);
+          //console.log(newData[i]);
+          setProperty({ path: `${componentPath}__userData`, value: data[i] });
+          console.log(getProperty( `${componentPath}__userData`));
+        }
+        console.log(userData);
+        
+        
+      } else {
+        console.error(`Fehler: Schlüssel "${key}" nicht im Objekt gefunden.`);
+      }
     };
-    */
+     */
     const builduserData = (jsonData: Record<string, any>, key: string): void => {
       let data : any = findKey(jsonData,key);
       if(data !== undefined){
