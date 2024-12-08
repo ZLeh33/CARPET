@@ -12,7 +12,7 @@
           </tr>
           <tr v-for="(row, i) in userData" :key="i">
             <th v-if="rowLabel && rowLabel.length">
-              <p  v-if="rowAnzahl !== undefined || userDataFromJsonPath !== null" class="matrix_label row_label">{{ rowLabel[0] +" "+(i+1)}}</p>
+              <p  v-if="rowAnzahl !== undefined || userDataFromJson_Path !== null" class="matrix_label row_label">{{ rowLabel[0] +" "+(i+1)}}</p>
               <p  v-else class="matrix_label row_label"> {{ rowLabel[i]  }}</p>
             </th>
             <td class="matrix_element" v-for="(element, j) in userData[i]" :key="j">
@@ -105,17 +105,22 @@ export default {
         return data[0].map((scalar) => [scalar]);
       } else return [];
     };
+    // Funktion, um eine Integer-Attribut zu laden
+    const loadIntZahl = (path) => {
+        const data = getProperty(path);
+        return data;
+      };
 
     //const userData = computed(() => loadData(`${componentPath}__userData`));
     const solutionData = computed(() => loadData(`${componentPath}__solutionData`));
     const validationData = computed(() => loadData(`${componentPath}__validationData`));
 
     //************************************************************  ************************************/
-    const userDataFromJsonPath = ref<string | null>(null);
+    const userDataFromJson_Path = ref<string | null>(null);
+    const userDataFromJson_Key  = ref<string | null>(null);
     const userData = ref<any[]>([]);
-    let rowAnzahl = undefined;
+    let rowAnzahl: number | undefined = undefined;
     let standardZeile = undefined;
-
 
     const loadJSONData = async (path: string): Promise<object | null> => {
       try {
@@ -131,7 +136,7 @@ export default {
         return null;
       }
     };
-    const transformData = (data: Object): Array<any> => {
+    const transformData = (data: any): Array<any> => {
       
       let tempArrays: Array<any> = [];
 
@@ -163,7 +168,7 @@ export default {
       tempArrays = tempArrays.map(arr => arr.flat());
       // Ergebnismatrix erstellen
       let result: any[] = [];
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < rowAnzahl.value; i++) {
         let row: any[] = [];
         for(let j=0 ; j < 7 ; j++){
           row.push(tempArrays[j][i]);
@@ -173,8 +178,35 @@ export default {
       return result;
     };
 
-    const builduserData = (obj : Object) =>{
-      const data = transformData(obj["Startparameter"]);
+    const findKey = (obj: Record<string, any>, key: string): any | undefined => {
+      // Überprüfen, ob der Schlüssel im aktuellen Objekt vorhanden ist
+      if (obj && key in obj) {
+        return obj[key]; // Wert zurückgeben, wenn Schlüssel gefunden
+      }
+
+      // Rekursiv durch die Werte gehen, wenn sie Objekte oder Arrays sind
+      for (let k in obj) {
+        const value = obj[k];
+        
+        // Falls der Wert ein Objekt oder Array ist, rekursiv weiter suchen
+        if (value && typeof value === 'object') {
+          const result = findKey(value, key);
+          if (result !== undefined) {
+            return result; // Wert zurückgeben, wenn gefunden
+          }
+        } else if (value === key) {
+          // Falls der Wert selbst dem gesuchten Schlüssel entspricht
+          return value;
+        }
+      }
+
+      // Falls der Schlüssel nicht gefunden wurde
+      return undefined;
+    };
+
+    /**
+        const builduserData = (obj : Object, key : string) =>{
+      const data = transformData(obj[key]);
       //userData = [...data.slice(2)]; // Kopiere alle Elemente ab dem zweiten Array
       //console.log(newData);
       //userData.value = [...data.slice(2,9)];
@@ -182,16 +214,27 @@ export default {
       userData.value = data;
       console.log(userData);
     };
+    */
+    const builduserData = (jsonData: Record<string, any>, key: string): void => {
+      let data : any = findKey(jsonData,key);
+      if(data !== undefined){
+        data = transformData(data); // Daten transformieren
+        userData.value = data;
+      } else {
+        console.error(`Fehler: Schlüssel "${key}" nicht im Objekt gefunden.`);
+      }
+    };
     
     onMounted(async () => {
       // Annahme: getProperty gibt einen string oder null zurück
-      const computedPath = computed(() => getProperty(`${componentPath}__userDataFromJsonPath`));
+      const computedPath = computed(() => getProperty(`${componentPath}__userDataFromJson_Path`));
       //console.log(computedPath.value);
-      //const computedPath = computed(() => `/json/tasks/FermentExercises/FermentALADIN_Aufgaben.json`);
       if (computedPath.value) {
-        userDataFromJsonPath.value = computedPath.value; // Wert zuweisen
+        userDataFromJson_Path.value = computedPath.value; // Wert zuweisen
+        userDataFromJson_Key.value = getProperty(`${componentPath}__userDataFromJson_Key`);
         const datatmp : Array<any>= await loadJSONData(computedPath.value);
-        builduserData(datatmp);
+        rowAnzahl = computed(() => loadIntZahl(getProperty(`${componentPath}__rowAnzahl`)));
+        builduserData(datatmp , userDataFromJson_Key.value);
       } else {
         console.error('Fehler: Kein gültiger Pfad gefunden.');
       }
@@ -203,11 +246,6 @@ export default {
       // die Anzahl der Zeilen laden
       rowAnzahl = computed(() => loadIntZahl(getProperty(`${componentPath}__rowAnzahl`)));
       standardZeile = computed(() => loadData(`${componentPath}__standardZeile`));
-      // Funktion, um eine Integer-Attribut zu laden
-      const loadIntZahl = (path) => {
-        const data = getProperty(path);
-        return data;
-      };
     }
     
     
@@ -605,7 +643,7 @@ export default {
       rowAnzahl,
       newData,
       spaltenMaxSumme,
-      userDataFromJsonPath
+      userDataFromJson_Path
       /********************************************************************end */
     };
   }

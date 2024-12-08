@@ -36,7 +36,8 @@ export default {
     const valuepath = `${componentPath}__form__seed__value`
     const value = getProperty(valuepath);
     const lokalvalue = ref(value);
-    
+    const userDataFromJson_Path = ref<string | null>(null);
+    const userDataFromJson_Key  = ref<string | null>(null);
 
     
     const emitEvent = (event) => {
@@ -66,10 +67,68 @@ export default {
 
     }
     watch(lokalvalue,emitEvent);
-    onMounted(() => {
+    const loadJSONData = async (path: string): Promise<object | null> => {
+      try {
+        const response = await fetch(path);
+        if (!response.ok) {
+          console.error('Netzwerkantwort war nicht ok');
+          return null;
+        }
+        const jsonData = await response.json();
+        return jsonData;
+      } catch (error) {
+        console.error('Fehler beim Laden der JSON-Datei:', error);
+        return null;
+      }
+    };
+    const findKey = (obj: Record<string, any>, key: string): any | undefined => {
+      // Überprüfen, ob der Schlüssel im aktuellen Objekt vorhanden ist
+      if (key in obj) {
+        return obj[key]; // Wert zurückgeben, wenn Schlüssel gefunden
+      }
+
+      // Rekursiv durch die Werte gehen, wenn sie Objekte oder Arrays sind
+      for (let k in obj) {
+        const value = obj[k];
+        
+        // Falls der Wert ein Objekt oder Array ist, rekursiv weiter suchen
+        if (value && typeof value === 'object') {
+          const result = findKey(value, key);
+          if (result !== undefined) {
+            return result; // Wert zurückgeben, wenn gefunden
+          }
+        }
+      }
+      // Falls der Schlüssel nicht gefunden wurde
+      return undefined;
+    };
+    const builduserData = (jsonData: Record<string, any>, key: string): void => {
+      let data : any = findKey(jsonData,key);
+      if(data !== undefined){
+        setProperty({
+          path: `nodes__${currentNode.value}__components__${props.componentID}__component__form__seed__value`,
+          value: data
+          });
+      } else {
+        console.error(`Fehler: Schlüssel "${key}" nicht im Objekt gefunden.`);
+      }
+    };
+    onMounted(async () => {
+      // Annahme: getProperty gibt einen string oder null zurück
+      const computedPath = computed(() => getProperty(`nodes__${currentNode.value}__components__${props.componentID}__component__form__seed__ValueFromJson_Path`));
+      if (computedPath.value) {
+        userDataFromJson_Path.value = computedPath.value; // Wert zuweisen
+        userDataFromJson_Key.value = getProperty(`nodes__${currentNode.value}__components__${props.componentID}__component__form__seed__ValueFromJson_Key`);
+        const datatmp : Array<any>= await loadJSONData(computedPath.value);
+        
+        builduserData(datatmp , userDataFromJson_Key.value);
+      } else {
+        console.error('Fehler: Kein gültiger Pfad gefunden.');
+      }
+
       evaluateValue(props);
     });
-
+    
     return { emitEvent,selectText, readOnly };
   },
 };

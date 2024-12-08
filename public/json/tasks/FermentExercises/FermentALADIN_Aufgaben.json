@@ -1,8 +1,7 @@
 {
     "Aufgabe": "Aufgabe: erhöhe cx auf >20 g/L und reduziere cp auf < 10 g/L (mögliche Nebenbedingung: ohne die Gesamtmenge an cs zu erhöhen)",
     "Startparameter": {
-        "Modell" : "Modell-1",  
-
+        "Modell" : ["S.cerevisiae","test1","test2"],  
         "PhasenAnzahl" : 4,
         "Zuluft": [0.67,0.67,0.67,0.67],
         "BolusC" : [0,0,0,0],
@@ -12,11 +11,9 @@
         "Druck": [0.01,0.01,0.01,0.01],
         "Dauer" : [24,24,24,24],
         
-        "temperatur": 30,
-
-        "startbiomasse": 0.05,
-
-        "do":100        
+        "Temperatur": 30,
+        "Startbiomasse": 0.05,
+        "Do":100        
     },
     "Ergebnis"  :   "Im Ergebnis erhält man ca. cx = 15 g/L und cp = 22,3 g/L"
 }
