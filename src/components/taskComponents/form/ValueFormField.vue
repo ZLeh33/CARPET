@@ -7,7 +7,7 @@
     oninput="this.reportValidity()"
     @keyup="emitEvent"
     @focus="selectText"
-    v-if="readOnly" readonly
+    :readonly="isreadOnly === true ? true : false" 
   />
 </template>
 
@@ -61,7 +61,8 @@ export default {
       );
     };
 
-    const readOnly = computed(()=> `nodes__${currentNode.value}__components__${props.componentID}__component__form__seed__readOnly` );
+    const isreadOnly : string | any = computed(()=> getProperty(`nodes__${currentNode.value}__components__${props.componentID}__component__form__seed__readOnly` ));
+    console.log(isreadOnly.value);
     const selectText = (event) =>  {
       event.target.select(); // Wählt den gesamten Inhalt des Input-Felds aus
 
@@ -129,7 +130,7 @@ export default {
       evaluateValue(props);
     });
     
-    return { emitEvent,selectText, readOnly };
+    return { emitEvent,selectText, isreadOnly };
   },
 };
 </script>

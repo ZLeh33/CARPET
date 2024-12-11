@@ -1,7 +1,7 @@
 {
     "Aufgabe": "Aufgabe: erhöhe cx auf >20 g/L und reduziere cp auf < 10 g/L (mögliche Nebenbedingung: ohne die Gesamtmenge an cs zu erhöhen)",
     "Startparameter": {
-        "Modell" : ["S.cerevisiae","test1","test2"],  
+        "Modell" : ["S.cerevisiae"],  
         "PhasenAnzahl" : 4,
         "Zuluft": [0.67,0.67,0.67,0.67],
         "BolusC" : [0,0,0,0],

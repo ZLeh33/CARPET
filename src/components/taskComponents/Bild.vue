@@ -10,9 +10,7 @@
                         class="input-field"
                         :type="input.type"
                         :id="'input' + (index + 1)"
-                        :value="handleValue(input.ValueFromJson_Key,input.placeholder)"
-                        :readonly="input.readOnly"
-                        :placeholder="handlePlaceholder(input.placeholder)"
+                        :placeholder="handlePlaceholder(input)"
                         @input="handleInput(input.placeholder, $event)"
                     >
                 </div>
@@ -125,12 +123,23 @@
             tooltipVisible.value[index] = false; // Tooltip unsichtbar machen
             };
             // Funktion zum Handhaben des Mouseover-Ereignisses
-            const handlePlaceholder = (nachricht: String) => {
-                let parts = nachricht.split(' ');
-                if (parts.length === 2) {
-                    return `${parts[0]}`; // str1 + tiefgestelltes str2
+            const handlePlaceholder = (input : any) => {
+                if(input.ValueFromJson_Key != undefined){
+                    let data : any = findKey(datatmp,input.ValueFromJson_Key);
+                    if(data){
+                        inputFelderValues.value[input.placeholder] = data;
+                        setProperty({ path: `${componentPath.value}__inputFelderValues`, value: inputFelderValues });
+                        return data;
+                    }
                 }
-                return parts; // Wenn nicht zwei Teile, einfach den ursprünglichen Wert zurückgeben
+                else{
+                    let parts = input.placeholder.split(' ');
+                    if (parts.length === 2) {
+                        return `${parts[0]}`; // str1 + tiefgestelltes str2
+                    }
+                    return parts; // Wenn nicht zwei Teile, einfach den ursprünglichen Wert zurückgeben
+                }
+                
             };
             const loadJSONData = async (path: string): Promise<object | null> => {
                 try {
@@ -166,7 +175,7 @@
                 // Falls der Schlüssel nicht gefunden wurde
                 return undefined;
             };
-            const handleValue = (key : string, placeholder : string) : any =>{
+            /*const handleValue = (key : string, placeholder : string) : any =>{
                 if(datatmp.value){
                     let data : any = findKey(datatmp,key);
                     if(data){
@@ -176,7 +185,7 @@
                     }
                 }
                 return '';
-            }
+            }*/
             onMounted(async () => {
                 // Annahme: getProperty gibt einen string oder null zurück
                 const computedPath = computed(() => getProperty(`nodes__${currentNode.value}__components__${props.componentID}__component__ValueFromJson_Path`));
@@ -196,7 +205,7 @@
                 handleInput,
                 handleMouseOver,
                 handleMouseLeave,
-                handleValue,
+                /*handleValue,*/
                 tooltipMessage,
                 tooltipVisible
             };

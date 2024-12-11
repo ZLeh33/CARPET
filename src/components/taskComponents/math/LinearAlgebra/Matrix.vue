@@ -36,7 +36,7 @@
 </template>
 
 <script lang="ts">
-import { onMounted, computed, watch, ref, watchEffect } from "vue";
+import { onMounted, onBeforeMount, computed, watch, ref, watchEffect } from "vue";
 import { Matrix } from "@/helpers/LinearAlgebra";
 import MatrixField from "@/components/taskComponents/math/LinearAlgebra/MatrixField.vue";
 import type { IMatrixInstruction } from "@/interfaces/componentInterfaces/MatrixInterface";
@@ -98,28 +98,28 @@ export default {
     });
 
     //muss vor dem Aufruf stehen
-    const loadData = (path) => {
+    const loadData = (path : string) => {
       const data = getProperty(path);
       if (data) {
         if (data.length > 1) return data;
-        return data[0].map((scalar) => [scalar]);
+        if (data.length !=0 )return data[0].map((scalar) => [scalar]);
       } else return [];
     };
     // Funktion, um eine Integer-Attribut zu laden
-    const loadIntZahl = (path) => {
+    const loadIntZahl = (path : string) => {
         const data = getProperty(path);
         return data;
       };
-
-    //const userData = computed(() => loadData(`${componentPath}__userData`));
+    
+    const userData = computed(() => loadData(`${componentPath}__userData`));
     const solutionData = computed(() => loadData(`${componentPath}__solutionData`));
     const validationData = computed(() => loadData(`${componentPath}__validationData`));
 
     //************************************************************  ************************************/
     const userDataFromJson_Path = ref<string | null>(null);
     const userDataFromJson_Key  = ref<string | null>(null);
-    const userData = ref<any[]>([]);
-    let rowAnzahl: number | undefined = undefined;
+    //const userData = ref<any[]>([]);
+    let rowAnzahl: any = undefined;
     let standardZeile = undefined;
 
     const loadJSONData = async (path: string): Promise<object | null> => {
@@ -162,19 +162,20 @@ export default {
           tempArrays.push([value]);
         }
       }
-      
+      // ! 
       tempArrays = [...tempArrays.slice(2,9)]
       // Entferne überflüssige Verschachtelungen
       tempArrays = tempArrays.map(arr => arr.flat());
       // Ergebnismatrix erstellen
       let result: any[] = [];
-      for (let i = 0; i < rowAnzahl.value; i++) {
+      for (let i = 0; i < 4; i++) {
         let row: any[] = [];
         for(let j=0 ; j < 7 ; j++){
           row.push(tempArrays[j][i]);
         }
         result.push(row);
       }
+      
       return result;
     };
 
@@ -229,25 +230,38 @@ export default {
       let data : any = findKey(jsonData,key);
       if(data !== undefined){
         data = transformData(data); // Daten transformieren
-        userData.value = data;
+        setPropertyForUserData(data);
+        //userData.value = data;
+        //setProperty({ path: `${componentPath}__userData`, value: data});
+        console.log(getProperty( `${componentPath}__userData`));
       } else {
         console.error(`Fehler: Schlüssel "${key}" nicht im Objekt gefunden.`);
       }
     };
-    
-    onMounted(async () => {
-      // Annahme: getProperty gibt einen string oder null zurück
+    const setPropertyForUserData = (data : any) => {
+      setProperty({ path: `${componentPath}__userData`, value: data});
+    }
+    const checkUserdataFromJson =  async () =>{
+      try{
+        // Annahme: getProperty gibt einen string oder null zurück
       const computedPath = computed(() => getProperty(`${componentPath}__userDataFromJson_Path`));
       //console.log(computedPath.value);
       if (computedPath.value) {
         userDataFromJson_Path.value = computedPath.value; // Wert zuweisen
         userDataFromJson_Key.value = getProperty(`${componentPath}__userDataFromJson_Key`);
         const datatmp : Array<any>= await loadJSONData(computedPath.value);
-        rowAnzahl = computed(() => loadIntZahl(getProperty(`${componentPath}__rowAnzahl`)));
+        //rowAnzahl = computed(() => loadIntZahl(getProperty(`${componentPath}__rowAnzahl`)));
         builduserData(datatmp , userDataFromJson_Key.value);
       } else {
         console.error('Fehler: Kein gültiger Pfad gefunden.');
       }
+      } catch (error) {
+        console.error('Fehler beim Abrufen der JSON-Daten:', error);
+      }
+    } 
+    
+    onMounted(() => {
+      checkUserdataFromJson();
     });
     
     // Überprüfen, ob die Property für die Anzahl der Zeilen existiert
@@ -259,13 +273,13 @@ export default {
     }
     
     
-    let newData = []; // Initialisiere ein neues Array, um die duplizierten Daten zu speichern
-    let i = 0; // Zähler für die Schleife
+    let newData : any = []; // Initialisiere ein neues Array, um die duplizierten Daten zu speichern
+    let i : number = 0; // Zähler für die Schleife
     // Überwacht Änderungen an 'rowAnzahl' und aktualisiert 'newData' entsprechend
     watchEffect(() => {
 
       // Überprüfen, ob 'rowAnzahl' definiert ist
-      if (rowAnzahl != undefined) {
+      if (rowAnzahl != undefined && standardZeile != undefined) {
         // Wenn 'rowAnzahl.value' größer oder gleich dem aktuellen Wert von 'i' ist
         if (rowAnzahl.value >= i) {
           // Schleife von 'i' bis 'rowAnzahl.value' 
@@ -282,7 +296,9 @@ export default {
           // Setze 'i' auf den neuen Wert von 'rowAnzahl.value'
           i = rowAnzahl.value;
         }
-        setProperty({ path: `${componentPath}__userData`, value: newData });
+
+        //setProperty({ path: `${componentPath}__userData`, value: newData });
+        setProperty({ path: `${componentPath}__userData`, value: newData});
       }
     });
 
@@ -358,7 +374,7 @@ export default {
         return [];
     };
 
-    const spaltenMaxSummeUeberwachen = () => {
+    /*const spaltenMaxSummeUeberwachen = () => {
     // Überprüfen, ob 'spaltenMaxSumme' nicht leer ist
     if (spaltenMaxSumme.value.length != 0) {
       const MatrixData =userData.value;
@@ -394,7 +410,7 @@ export default {
         }
       });
     }
-  }
+  }*/
 
     //**********************************************************END ******************************************************************/
 
@@ -580,7 +596,7 @@ export default {
       } else {
         ({ isValid, isCorrect } = validateMatrixHacked());
 
-        isValid = spaltenMaxSummeUeberwachen();
+        //isValid = spaltenMaxSummeUeberwachen();
       }
 
       setProperty({
@@ -591,7 +607,7 @@ export default {
         path: `nodes__${currentNode.value}__components__${props.componentID}__isCorrect`,
         value: isCorrect
       });
-      spaltenMaxSummeUeberwachen();
+      //spaltenMaxSummeUeberwachen();
     };
 
     // TODO: delete, once above TODO is solved
