@@ -98,6 +98,7 @@ import Chart from "@/components/taskComponents/Charts/Chart.vue";
 import EchtButton from "@/components/taskComponents/EchtButton.vue";
 import Bild from "@/components/taskComponents/Bild.vue";
 import BackendFormular from "@/components/taskComponents/BackendFormular.vue";
+import TaskViewer from "@/components/taskComponents/TaskViewer.vue";
 export default {
   name: "Canvas",
   components: {
@@ -131,7 +132,8 @@ export default {
     Chart,
     EchtButton,
     Bild,
-    BackendFormular
+    BackendFormular,
+    TaskViewer
   },
   props: {
     storeObject: Object

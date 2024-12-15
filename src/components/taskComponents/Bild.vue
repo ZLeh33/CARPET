@@ -10,7 +10,7 @@
                         class="input-field"
                         :type="input.type"
                         :id="'input' + (index + 1)"
-                        :placeholder="handlePlaceholder(input.placeholder)"
+                        :placeholder="handlePlaceholder(input)"
                         @input="handleInput(input.placeholder, $event)"
                     >
                 </div>
@@ -24,7 +24,7 @@
 
 <script lang="ts">
     import { isNumber } from 'lodash';
-import { defineComponent, computed, ref, watch } from 'vue';
+    import { defineComponent, computed, ref, watch, onMounted } from 'vue';
 
     export default defineComponent({
         props: {
@@ -38,7 +38,10 @@ import { defineComponent, computed, ref, watch } from 'vue';
             const currentNode = computed(() => store.state.currentNode);
             // Generiert den Pfad zur Komponente basierend auf currentNode und componentID
             const componentPath = computed(() => `nodes__${currentNode.value}__components__${props.componentID}__component`);
-
+            
+            const ValueFromJson_Path = ref<string | null>(null);
+            let datatmp = ref<any | null>('');
+        
             // Funktion zum Laden von Daten
             const loadData = (path: string) => {
                 const data = getProperty(path);
@@ -65,6 +68,8 @@ import { defineComponent, computed, ref, watch } from 'vue';
                         return data.map(item => ({
                             type: item.type,
                             placeholder: item.placeholder,
+                            ValueFromJson_Key: item.ValueFromJson_Key,
+                            readOnly: item.readOnly,
                             align:item.align,
                             width: item.width
                         }));
@@ -94,7 +99,7 @@ import { defineComponent, computed, ref, watch } from 'vue';
                 }
 
                 //Zum Test
-                console.log("Test Eingabefeld  "+placeholder+" : ",parsedValue);
+                //console.log("Test Eingabefeld  "+placeholder+" : ",parsedValue);
                 if (placeholder in inputFelderValues.value) {
                     inputFelderValues.value[placeholder] = parsedValue;
                 }
@@ -118,14 +123,79 @@ import { defineComponent, computed, ref, watch } from 'vue';
             tooltipVisible.value[index] = false; // Tooltip unsichtbar machen
             };
             // Funktion zum Handhaben des Mouseover-Ereignisses
-            const handlePlaceholder = (nachricht: String) => {
-                let parts = nachricht.split(' ');
-                if (parts.length === 2) {
-                    return `${parts[0]}`; // str1 + tiefgestelltes str2
+            const handlePlaceholder = (input : any) => {
+                if(input.ValueFromJson_Key != undefined){
+                    let data : any = findKey(datatmp,input.ValueFromJson_Key);
+                    if(data){
+                        inputFelderValues.value[input.placeholder] = data;
+                        setProperty({ path: `${componentPath.value}__inputFelderValues`, value: inputFelderValues });
+                        return data;
+                    }
                 }
-                return parts; // Wenn nicht zwei Teile, einfach den ursprünglichen Wert zurückgeben
+                else{
+                    let parts = input.placeholder.split(' ');
+                    if (parts.length === 2) {
+                        return `${parts[0]}`; // str1 + tiefgestelltes str2
+                    }
+                    return parts; // Wenn nicht zwei Teile, einfach den ursprünglichen Wert zurückgeben
+                }
+                
             };
-            
+            const loadJSONData = async (path: string): Promise<object | null> => {
+                try {
+                    const response = await fetch(path);
+                    if (!response.ok) {
+                    console.error('Netzwerkantwort war nicht ok');
+                    return null;
+                    }
+                    const jsonData = await response.json();
+                    return jsonData;
+                } catch (error) {
+                    console.error('Fehler beim Laden der JSON-Datei:', error);
+                    return null;
+                }
+            };
+            const findKey = (obj: Record<string, any>, key: string): any | undefined => {
+                // Überprüfen, ob der Schlüssel im aktuellen Objekt vorhanden ist
+                if (key in obj) {
+                    return obj[key]; // Wert zurückgeben, wenn Schlüssel gefunden
+                }
+                // Rekursiv durch die Werte gehen, wenn sie Objekte oder Arrays sind
+                for (let k in obj) {
+                    const value = obj[k];
+                    
+                    // Falls der Wert ein Objekt oder Array ist, rekursiv weiter suchen
+                    if (value && typeof value === 'object') {
+                    const result = findKey(value, key);
+                    if (result !== undefined) {
+                        return result; // Wert zurückgeben, wenn gefunden
+                    }
+                    }
+                }
+                // Falls der Schlüssel nicht gefunden wurde
+                return undefined;
+            };
+            /*const handleValue = (key : string, placeholder : string) : any =>{
+                if(datatmp.value){
+                    let data : any = findKey(datatmp,key);
+                    if(data){
+                        inputFelderValues.value[placeholder] = data;
+                        setProperty({ path: `${componentPath.value}__inputFelderValues`, value: inputFelderValues });
+                        return data;
+                    }
+                }
+                return '';
+            }*/
+            onMounted(async () => {
+                // Annahme: getProperty gibt einen string oder null zurück
+                const computedPath = computed(() => getProperty(`nodes__${currentNode.value}__components__${props.componentID}__component__ValueFromJson_Path`));
+                if (computedPath.value) {
+                    ValueFromJson_Path.value = computedPath.value; // Wert zuweisen
+                    datatmp.value = await loadJSONData(computedPath.value);
+                } else {
+                    console.error('Fehler: Kein gültiger Pfad gefunden.');
+                }
+                });
             // Rückgabe der berechneten Werte zur Nutzung in der Template
             return {
                 bildPath,
@@ -135,6 +205,7 @@ import { defineComponent, computed, ref, watch } from 'vue';
                 handleInput,
                 handleMouseOver,
                 handleMouseLeave,
+                /*handleValue,*/
                 tooltipMessage,
                 tooltipVisible
             };
@@ -198,7 +269,7 @@ import { defineComponent, computed, ref, watch } from 'vue';
     border: 1px solid #ccc;
     width: 100%; /* Vollständige Breite des Grid-Items */
     height: 30%; /* Automatische Höhe */
-    font-size: 1.5vw; /* Schriftgröße in Viewport-Breite */
+    font-size: 1vw; /* Schriftgröße in Viewport-Breite */
     text-align: center;
     box-sizing: border-box; /* Berücksichtigt Padding und Rand in der Breite */
     border-radius: 30px;
