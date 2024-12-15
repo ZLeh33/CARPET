@@ -180,7 +180,7 @@ h1 {
 button {
   margin-top: 10px;
   color: orange; /* Text color */
-  background-color: black; /* Background color */
+  background-color: rgba(0, 0, 0, 0.646); /* Background color */
   border: none; /* Remove border */
   padding: 10px 20px; /* Add some padding */
   font-size: 16px; /* Adjust font size */
