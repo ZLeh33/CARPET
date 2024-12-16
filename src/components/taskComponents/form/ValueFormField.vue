@@ -51,6 +51,7 @@ export default {
           path: `nodes__${currentNode.value}__components__${props.componentID}__component__form__seed__value`,
           value: value
           });
+          
           event.target.blur();
           /************************************End *************************************************/
           evaluateValue(props);
@@ -62,7 +63,6 @@ export default {
     };
 
     const isreadOnly : string | any = computed(()=> getProperty(`nodes__${currentNode.value}__components__${props.componentID}__component__form__seed__readOnly` ));
-    console.log(isreadOnly.value);
     const selectText = (event) =>  {
       event.target.select(); // Wählt den gesamten Inhalt des Input-Felds aus
 
@@ -123,8 +123,6 @@ export default {
         const datatmp : Array<any>= await loadJSONData(computedPath.value);
         
         builduserData(datatmp , userDataFromJson_Key.value);
-      } else {
-        console.error('Fehler: Kein gültiger Pfad gefunden.');
       }
 
       evaluateValue(props);
