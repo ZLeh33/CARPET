@@ -252,8 +252,6 @@ export default {
         const datatmp : Array<any>= await loadJSONData(computedPath.value);
         //rowAnzahl = computed(() => loadIntZahl(getProperty(`${componentPath}__rowAnzahl`)));
         builduserData(datatmp , userDataFromJson_Key.value);
-      } else {
-        console.error('Fehler: Kein gültiger Pfad gefunden.');
       }
       } catch (error) {
         console.error('Fehler beim Abrufen der JSON-Daten:', error);
