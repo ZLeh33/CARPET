@@ -83,7 +83,7 @@ export default {
       else if(!Array.isArray(data) && data){
         props.element.options  = [String(data)];
         props.element.initial = [String(data)];
-        console.log(data);
+        //console.log(data);
       }
       else {
         console.error(`Fehler: Schlüssel "${key}" nicht im Objekt gefunden.`);
@@ -100,8 +100,6 @@ export default {
         if(datatmp && OptionsFromJson_Key.value){
           buildOptionsData(datatmp , OptionsFromJson_Key.value);
         }
-      } else {
-        console.error('Fehler: Kein gültiger Pfad gefunden.');
       }
       executeAction();
     });
