@@ -99,6 +99,7 @@ import EchtButton from "@/components/taskComponents/EchtButton.vue";
 import Bild from "@/components/taskComponents/Bild.vue";
 import BackendFormular from "@/components/taskComponents/BackendFormular.vue";
 import TaskViewer from "@/components/taskComponents/TaskViewer.vue";
+import CheckboxGroup from "@/components/taskComponents/CheckboxGroup.vue";
 export default {
   name: "Canvas",
   components: {
@@ -133,7 +134,8 @@ export default {
     EchtButton,
     Bild,
     BackendFormular,
-    TaskViewer
+    TaskViewer,
+    CheckboxGroup
   },
   props: {
     storeObject: Object
