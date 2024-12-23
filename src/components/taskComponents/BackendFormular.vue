@@ -34,6 +34,8 @@ import CheckboxFormField from "@/components/taskComponents/form/CheckboxFormFiel
 import ValueFormField from "@/components/taskComponents/form/ValueFormField.vue";
 import DualSlider from "@/components/taskComponents/form/DualSlider.vue";
 import ActionButtons from "@/components/taskComponents/mixins/ActionButtons.vue";
+import * as fs from 'fs';
+import * as path from 'path';
 
 export default {
   props: {
@@ -72,6 +74,30 @@ export default {
     });
 
     const elements = computed(() => getProperty(`${path}__component__form`));
+    const saveFetchedDataInTemplate_Path : any | null = computed(() => getProperty(`${path}__component__saveFetchedDataInTemplate_Path`));
+    //console.log(saveFetchedDataInTemplate_Path.value);
+    const saveFetchData = async (payload: object) => {
+      try {
+          // Beispielhafte URL der JSON-Datei (die im öffentlichen Verzeichnis verfügbar ist)
+          const response = await fetch(saveFetchedDataInTemplate_Path.value); // Pfad zur Datei
+
+          // Überprüfen, ob die Antwort erfolgreich war
+          if (!response.ok) {
+              throw new Error('Netzwerkantwort war nicht erfolgreich');
+          }
+
+          // Die Antwort als JSON parsen
+          const data = await response.json();
+          
+          if (payload && 'parameters' in payload && data && 'Startparameter' in data) {
+              data['Startparameter'] = payload['parameters'];
+              setProperty({ path: `${path}__component__savedData`,value: data });
+          }
+      } catch (error) {
+          console.error('Fehler beim Lesen der JSON-Datei:', error);
+          return null;
+      }
+  };
 
     const updateElement = (event: Event) => {
       const { classList, value, type, checked } = <HTMLFormElement>event.target;
@@ -130,6 +156,7 @@ export default {
     const fetchData = (instruction) => {
       /******** Zakaria : nur zum testen was ist das Ergebnis von preparePayload-methode */
       const payload = preparePayload(instruction);
+      if(saveFetchedDataInTemplate_Path.value != null) saveFetchData(payload);
       console.log("Payload:", payload); // Ausgabe des Payloads in der Konsole
       /***********End  ******************/
       store.dispatch("fetchTaskData", {
