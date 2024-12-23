@@ -6,20 +6,6 @@
         <!-- Paragraph anzeigen, wenn vorhanden -->
         <p v-if="paragraph" style="font-size: 2em;"><i>{{ paragraph }}</i></p>
         
-        <!-- Parameter-Liste mit Key-Value-Paaren -->
-        <ul v-if="parameter && Object.keys(parameter).length > 0">
-            <li 
-                v-for="(value, key) in parameter" 
-                :key="key"
-                class="parameter-item"
-            >
-                {{ key }}   :   {{ value }}
-            </li>
-        </ul>
-        <p v-if="Object.keys(parameter).length == 0" style="font-size: 1em;">{{ parameter }}</p>
-
-        <!-- result anzeigen, wenn vorhanden -->
-        <p v-if="result" style="font-size: 2em;"><strong>{{ result }}</strong></p>
     </div>
 </template>
 
@@ -42,65 +28,51 @@ import { defineComponent, computed, watchEffect , ref} from 'vue';
                 data = getProperty(path);
                 return data;
             };
-            const loadJSONData = async (path : String) : Promise<object | undefined> => {
-                try{
-                    const response = await fetch(path);
-                    if(!response.ok){
-                        console.log('Netzwerkantwort war nicht ok');
-                    }
-                    const jsonData = await response.json();
-                    return jsonData;
-                } catch (error){
-                    console.error("Fehler beim Laden der JSON-Datei:", error);
-                }
-            }
             
-            // Asynchrone Funktion zum Laden und Verarbeiten der JSON-Daten
-            const buildTask = async (path: string) => {
-                try {
-                    const data = await loadJSONData(path); // Warten auf die Daten
-                    if (data) {
-                        const paragraph = Object.values(data)[0];
-                        const parameter = Object.values(data)[1];
-                        const result  = Object.values(data)[2];
-                        return {paragraph ,parameter, result}; // Rückgabe der Aufgabe
-                    } else {
-                        console.log('Fehler: Das geladene Datenobjekt ist kein Objekt');
-                        return null; // Rückgabe von null bei Fehler
-                    }
-                } catch (error) {
-                    console.error('Fehler beim Laden der Daten:', error);
-                    return null; // Rückgabe von null bei Fehler
+            
+            
+            const findKey = (obj: Record<string, any>, key: string): any | undefined => {
+                // Überprüfen, ob der Schlüssel im aktuellen Objekt vorhanden ist
+                if (key in obj) {
+                    return obj[key]; // Wert zurückgeben, wenn Schlüssel gefunden
                 }
+
+                // Rekursiv durch die Werte gehen, wenn sie Objekte oder Arrays sind
+                for (let k in obj) {
+                    const value = obj[k];
+                    
+                    // Falls der Wert ein Objekt oder Array ist, rekursiv weiter suchen
+                    if (value && typeof value === 'object') {
+                    const result = findKey(value, key);
+                    if (result !== undefined) {
+                        return result; // Wert zurückgeben, wenn gefunden
+                    }
+                    }
+                }
+                // Falls der Schlüssel nicht gefunden wurde
+                return undefined;
             };
 
             const heading = computed(() => loadData(`${componentPath.value}__titel`));
             const path = computed(() => loadData(`${componentPath.value}__path`));
             // Reaktive Daten für paragraph und parameter
             const paragraph = ref('');
-            const parameter = ref('');
-            const result  =   ref('');
+            let obj = ref<Object | null>(null);
+            let key : string | null;
+            //const parameter = ref('');
+            //const result  =   ref('');
             watchEffect(() => {
                 // Hier sicherstellen, dass path.value nicht null oder undefined ist
                 if (path.value) {
-                    buildTask(path.value).then(({ paragraph: p, parameter: par, result: e }) => {
-                        if (p && par && e) {
-                            // Die Werte werden in den reaktiven Variablen gespeichert
-                            paragraph.value = p;
-                            parameter.value = par;
-                            result.value = e;
-                        } else {
-                            console.log('Fehler: Es wurden keine gültigen Daten zurückgegeben.');
-                        }
-                    });
+                    obj = getProperty(path.value);
+                    key = getProperty(`${componentPath.value}__key`);
+                    if(obj && key)paragraph.value = findKey(obj,key);
                 }
             });
 
             return {
                 heading,
-                paragraph,
-                parameter,
-                result
+                paragraph
             };
 
 
@@ -120,11 +92,6 @@ import { defineComponent, computed, watchEffect , ref} from 'vue';
     flex-direction: column;
     align-items: center;
     gap: 1rem; /* Abstand zwischen den Elementen */
-    }
-
-    ul {
-        padding: 0;
-        list-style-type: circle;
     }
 
     .parameter-item {
