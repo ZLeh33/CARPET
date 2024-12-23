@@ -1,0 +1,19 @@
+{
+    "Aufgabe"       : "Sie betrachten die  Herstellung von S. cerevisiae Biomasse (c_{x}) aus Glucose (c_{S}) und einer N-Quelle.\nAngezeigte Parameter sind vorgegeben (werden nicht verändert).\nGesamtmenge an zugegebener Glucose darf 50 g/L (c_{S, total}) nicht übersteigen #%dieser Wert kann auch im Bereich 20 bis 100 gewürfelt werden, dann werden die Ergebnisse c_x_max und c_p_min entsprechend angepasst.\nBei der Fermentation bildet sich Ethanol als Nebenprodukt (c_{P}), welches unerwünscht ist. Schauen Sie sich das Verhalten der Fermentation in der Batchverfahrensweise an und optimieren Sie die Zugabe der C-Quelle so, dass mehr als 20 g/L Biomasse und weniger als 10 g/L Ethanol nach maximal 24h erreicht werden.\n",
+    "Startparameter": {
+        "Modell"        : "S.cerevisiae",  
+        "PhasenAnzahl"  : 0,
+        "Zuluft"        : [0,0,0,0],
+        "BolusC"        : [0,0,0,0],
+        "Feed"          : [0,0,0,0],
+        "BolusN"        : [0,0,0,0],
+        "Drehzahl"      : [0,0,0,0],
+        "Druck"         : [0,0,0,0],
+        "Dauer"         : [0,0,0,0],
+        "Temperatur"    : 0,
+        "Startbiomasse" : 0,
+        "Do"            :0        
+    },
+    "Info"          :   "Das theoretische Maximum an c_x und das globale Minimum für c_P kann nur erreicht werden wenn c_S in infinitesimal kleinen Schritten zugegeben wird und die Zugabemenge einer Exponentialfunktion folgt.",
+    "Frage"         :   "„Welcher mathematische Zusammenhang besteht zwischen der Biomassekonzentration und der Fermentationszeit wenn die Biomasse unlimitiert wachsen kann? Wie müsste demnach die Zugabemenge an C-Quelle über die Zeit gestaltet werden?“"
+}
