@@ -36,8 +36,9 @@ export default {
     const valuepath = `${componentPath}__form__seed__value`
     const value = getProperty(valuepath);
     const lokalvalue = ref(value);
-    const userDataFromJson_Path = ref<string | null>(null);
-    const userDataFromJson_Key  = ref<string | null>(null);
+    
+    const valueFromJson = ref<Object | null>(null);
+    const valueFromJson_Key  = ref<string | null>(null);
 
     
     const emitEvent = (event) => {
@@ -68,20 +69,7 @@ export default {
 
     }
     watch(lokalvalue,emitEvent);
-    const loadJSONData = async (path: string): Promise<object | null> => {
-      try {
-        const response = await fetch(path);
-        if (!response.ok) {
-          console.error('Netzwerkantwort war nicht ok');
-          return null;
-        }
-        const jsonData = await response.json();
-        return jsonData;
-      } catch (error) {
-        console.error('Fehler beim Laden der JSON-Datei:', error);
-        return null;
-      }
-    };
+
     const findKey = (obj: Record<string, any>, key: string): any | undefined => {
       // Überprüfen, ob der Schlüssel im aktuellen Objekt vorhanden ist
       if (key in obj) {
@@ -103,7 +91,7 @@ export default {
       // Falls der Schlüssel nicht gefunden wurde
       return undefined;
     };
-    const builduserData = (jsonData: Record<string, any>, key: string): void => {
+    const buildValue = (jsonData: Object, key: string): void => {
       let data : any = findKey(jsonData,key);
       if(data !== undefined){
         setProperty({
@@ -116,13 +104,13 @@ export default {
     };
     onMounted(async () => {
       // Annahme: getProperty gibt einen string oder null zurück
-      const computedPath = computed(() => getProperty(`nodes__${currentNode.value}__components__${props.componentID}__component__form__seed__ValueFromJson_Path`));
+      const computedPath = computed(() => getProperty(`nodes__${currentNode.value}__components__${props.componentID}__component__form__seed__ValueFromJson`));
       if (computedPath.value) {
-        userDataFromJson_Path.value = computedPath.value; // Wert zuweisen
-        userDataFromJson_Key.value = getProperty(`nodes__${currentNode.value}__components__${props.componentID}__component__form__seed__ValueFromJson_Key`);
-        const datatmp : Array<any>= await loadJSONData(computedPath.value);
-        
-        builduserData(datatmp , userDataFromJson_Key.value);
+        valueFromJson.value = getProperty(computedPath.value); // Wert zuweisen
+
+        valueFromJson_Key.value = getProperty(`nodes__${currentNode.value}__components__${props.componentID}__component__form__seed__ValueFromJson_Key`);
+        //const datatmp : Array<any>= await loadJSONData(computedPath.value);
+        if(valueFromJson.value != null && valueFromJson_Key.value) buildValue(valueFromJson.value , valueFromJson_Key.value);
       }
 
       evaluateValue(props);
