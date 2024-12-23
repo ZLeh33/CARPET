@@ -39,7 +39,7 @@
             // Generiert den Pfad zur Komponente basierend auf currentNode und componentID
             const componentPath = computed(() => `nodes__${currentNode.value}__components__${props.componentID}__component`);
             
-            const ValueFromJson_Path = ref<string | null>(null);
+            const ValueFromJson = ref<Object | null>(null);
             let datatmp = ref<any | null>('');
         
             // Funktion zum Laden von Daten
@@ -60,7 +60,6 @@
             // Überprüft, ob input nicht null ist und lädt dann die Input-Daten
             if (input != null) {
                 inputFelder = computed(() => loadInputData(`${componentPath.value}__inputFelder`));
-
                 // Funktion zum Laden der Input-Daten aus dem Store
                 const loadInputData = (path) => {
                     const data = getProperty(path);
@@ -77,6 +76,17 @@
                     return [];
                 };
                 
+                const handleValue = (placeholder : string , value_Key : string) =>{
+                    //console.log(placeholder,valueFromJsonKey);
+                    //console.log(ValueFromJson.value,value_Key);
+                    if(value_Key && ValueFromJson.value){
+                        let data : any = findKey(ValueFromJson.value,value_Key);
+                        inputFelderValues.value[placeholder] = data;
+                        setProperty({ path: `${componentPath.value}__inputFelderValues`, value: inputFelderValues });
+                        return data;
+                    }
+                    }
+
                 // Watcher to update inputFelderValues whenever inputFelder changes
                 watch(inputFelder, (newInputFelder) => {
                     const values = {};
@@ -85,7 +95,9 @@
                     });
                     inputFelderValues.value = values;
                 }, { immediate: true }); // immediate: true to initsialize on setup
+
             }
+            
             // Function to handle input events
             const handleInput = (placeholder: string, event: Event) => {
                 const target = event.target as HTMLInputElement;
@@ -106,6 +118,7 @@
                 setProperty({ path: `${componentPath.value}__inputFelderValues`, value: inputFelderValues });
                 
             };
+
             // Tooltip-Status und -Nachricht verwalten
             const tooltipVisible = ref<boolean[]>([]);
             const tooltipMessage = ref<string[]>([]);
@@ -121,39 +134,6 @@
             // Funktion zum Handhaben des Mouseleave-Ereignisses
             const handleMouseLeave = (index:number) => {
             tooltipVisible.value[index] = false; // Tooltip unsichtbar machen
-            };
-            // Funktion zum Handhaben des Mouseover-Ereignisses
-            const handlePlaceholder = (input : any) => {
-                if(input.ValueFromJson_Key != undefined){
-                    let data : any = findKey(datatmp,input.ValueFromJson_Key);
-                    if(data){
-                        inputFelderValues.value[input.placeholder] = data;
-                        setProperty({ path: `${componentPath.value}__inputFelderValues`, value: inputFelderValues });
-                        return data;
-                    }
-                }
-                else{
-                    let parts = input.placeholder.split(' ');
-                    if (parts.length === 2) {
-                        return `${parts[0]}`; // str1 + tiefgestelltes str2
-                    }
-                    return parts; // Wenn nicht zwei Teile, einfach den ursprünglichen Wert zurückgeben
-                }
-                
-            };
-            const loadJSONData = async (path: string): Promise<object | null> => {
-                try {
-                    const response = await fetch(path);
-                    if (!response.ok) {
-                    console.error('Netzwerkantwort war nicht ok');
-                    return null;
-                    }
-                    const jsonData = await response.json();
-                    return jsonData;
-                } catch (error) {
-                    console.error('Fehler beim Laden der JSON-Datei:', error);
-                    return null;
-                }
             };
             const findKey = (obj: Record<string, any>, key: string): any | undefined => {
                 // Überprüfen, ob der Schlüssel im aktuellen Objekt vorhanden ist
@@ -175,8 +155,36 @@
                 // Falls der Schlüssel nicht gefunden wurde
                 return undefined;
             };
-            /*const handleValue = (key : string, placeholder : string) : any =>{
-                if(datatmp.value){
+            // Funktion zum Handhaben des Mouseover-Ereignisses
+            const handlePlaceholder = (input : any) => {
+                if(ValueFromJson.value){
+                    let data : any = findKey(ValueFromJson.value,input.ValueFromJson_Key);
+                    if(data){
+                        inputFelderValues.value[input.placeholder] = data;
+                        setProperty({ path: `${componentPath.value}__inputFelderValues`, value: inputFelderValues });
+                        return data;
+                    }
+                }
+                else{
+                let parts = input.placeholder.split(' ');
+                if (parts.length === 2) {
+                    return `${parts[0]}`; // str1 + tiefgestelltes str2
+                }
+                return parts; // Wenn nicht zwei Teile, einfach den ursprünglichen Wert zurückgeben
+                //}
+                
+            };
+        }
+            /*
+            const handleValue = (placeholder : string , valueFromJsonKey : string) =>{
+                console.log(placeholder,valueFromJsonKey);
+                
+                if(obj){
+                    Object.entries(inputFelderValues.value).forEach(([key, value]) => {
+                        //console.log(`${key}: ${value}`);
+
+                    });
+                    if (placeholder in inputFelderValues.value) {
                     let data : any = findKey(datatmp,key);
                     if(data){
                         inputFelderValues.value[placeholder] = data;
@@ -185,15 +193,16 @@
                     }
                 }
                 return '';
+            }
             }*/
             onMounted(async () => {
                 // Annahme: getProperty gibt einen string oder null zurück
-                const computedPath = computed(() => getProperty(`nodes__${currentNode.value}__components__${props.componentID}__component__ValueFromJson_Path`));
+                const computedPath = computed(() => getProperty(`nodes__${currentNode.value}__components__${props.componentID}__component__ValuesFromJson`));
                 if (computedPath.value) {
-                    ValueFromJson_Path.value = computedPath.value; // Wert zuweisen
-                    datatmp.value = await loadJSONData(computedPath.value);
-                } else {
-                    console.error('Fehler: Kein gültiger Pfad gefunden.');
+                    ValueFromJson.value = getProperty(computedPath.value); // Wert zuweisen
+                    
+                    //if(ValueFromJson.value)handleValues(ValueFromJson.value)
+                    //datatmp.value = await loadJSONData(computedPath.value);
                 }
                 });
             // Rückgabe der berechneten Werte zur Nutzung in der Template
