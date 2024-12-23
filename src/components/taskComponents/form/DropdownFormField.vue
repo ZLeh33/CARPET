@@ -23,7 +23,7 @@ export default {
     const currentTask = getProperty("currentTask");
     const currentNode = computed(() => store.state.currentNode);
     const { action } = props.element;
-    const OptionsFromJson_Path = ref<string | null>(null);
+    const OptionsFromJson = ref<Object | null>(null);
     const OptionsFromJson_Key = ref<string | null>(null);
     const executeAction = () => {
       const { instruction, type, key } = action;
@@ -32,20 +32,7 @@ export default {
         endpoint: `${currentTask}/${instruction}`,
       });
     };
-    const loadJSONData = async (path: string): Promise<object | null> => {
-      try {
-        const response = await fetch(path);
-        if (!response.ok) {
-          console.error('Netzwerkantwort war nicht ok');
-          return null;
-        }
-        const jsonData = await response.json();
-        return jsonData;
-      } catch (error) {
-        console.error('Fehler beim Laden der JSON-Datei:', error);
-        return null;
-      }
-    };
+    
     const findKey = (obj: Record<string, any>, key: string): any | undefined => {
       // Überprüfen, ob der Schlüssel im aktuellen Objekt vorhanden ist
       if (obj && key in obj) {
@@ -91,14 +78,13 @@ export default {
     };
     onMounted(async () => {
       // Annahme: getProperty gibt einen string oder null zurück
-      const computedPath = computed(() => getProperty(`nodes__${currentNode.value}__components__${props.componentID}__component__form__nodeAmount__OptionsFromJson_Path`));
+      const computedPath = computed(() => getProperty(`nodes__${currentNode.value}__components__${props.componentID}__component__form__nodeAmount__OptionsFromJson`));
       if (computedPath.value) {
-        
-        OptionsFromJson_Path.value = computedPath.value; // Wert zuweisen
+        OptionsFromJson.value = getProperty(computedPath.value); // Wert zuweisen
         OptionsFromJson_Key.value  = getProperty(`nodes__${currentNode.value}__components__${props.componentID}__component__form__nodeAmount__OptionsFromJson_Key`);
-        const datatmp : object | null = await loadJSONData(computedPath.value);
-        if(datatmp && OptionsFromJson_Key.value){
-          buildOptionsData(datatmp , OptionsFromJson_Key.value);
+        
+        if(OptionsFromJson.value && OptionsFromJson_Key.value){
+          buildOptionsData(OptionsFromJson.value , OptionsFromJson_Key.value);
         }
       }
       executeAction();
