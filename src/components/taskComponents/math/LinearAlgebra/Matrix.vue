@@ -12,7 +12,7 @@
           </tr>
           <tr v-for="(row, i) in userData" :key="i">
             <th v-if="rowLabel && rowLabel.length">
-              <p  v-if="rowAnzahl !== undefined || userDataFromJson_Path !== null" class="matrix_label row_label">{{ rowLabel[0] +" "+(i+1)}}</p>
+              <p  v-if="rowAnzahl !== undefined || userDataFromJson !== null" class="matrix_label row_label">{{ rowLabel[0] +" "+(i+1)}}</p>
               <p  v-else class="matrix_label row_label"> {{ rowLabel[i]  }}</p>
             </th>
             <td class="matrix_element" v-for="(element, j) in userData[i]" :key="j">
@@ -116,7 +116,7 @@ export default {
     const validationData = computed(() => loadData(`${componentPath}__validationData`));
 
     //************************************************************  ************************************/
-    const userDataFromJson_Path = ref<string | null>(null);
+    const userDataFromJson = ref<Object | null>(null);
     const userDataFromJson_Key  = ref<string | null>(null);
     //const userData = ref<any[]>([]);
     let rowAnzahl: any = undefined;
@@ -137,48 +137,54 @@ export default {
       }
     };
     const transformData = (data: any): Array<any> => {
-      
-      let tempArrays: Array<any> = [];
+  let tempArrays: Array<any> = [];
 
-      // Iteriere über die Items im Datenobjekt
-      for (const [key, value] of Object.entries(data)) {
-        if (typeof value === 'object' && !Array.isArray(value)) {
-          // Wenn der Wert ein Objekt ist, füge die Werte des Objekts hinzu
-          const values = Object.values(value);
+  // Iteriere über die Items im Datenobjekt
+  for (const [key, value] of Object.entries(data)) {
+    if (typeof value === 'object' && !Array.isArray(value)) {
+      // Wenn der Wert ein Objekt ist, füge die Werte des Objekts hinzu
+      const values = Object.values(value);
 
-          // Bearbeite die Werte des Objekts
-          for (let i = 0; i < values.length; i++) {
-            const r = values[i];
-            if (typeof r === 'number') {
-              values[i] = Math.floor(r); // Wandelt Zahlen in Integer um
-            } else if (Array.isArray(r)) {
-              values[i] = r.map(val => parseFloat(val)); // Wandelt Arrays in Floats um
-            }
-          }
-
-          tempArrays.push(values); // Füge das Array der temporären Liste hinzu
-        } else {
-          // Wenn der Wert kein Objekt ist, füge den Wert direkt hinzu
-          tempArrays.push([value]);
+      // Bearbeite die Werte des Objekts
+      for (let i = 0; i < values.length; i++) {
+        const r = values[i];
+        if (typeof r === 'number') {
+          values[i] = Math.floor(r); // Wandelt Zahlen in Integer um
+        } else if (Array.isArray(r)) {
+          values[i] = r.map(val => parseFloat(val)); // Wandelt Arrays in Floats um
         }
       }
-      // ! 
-      tempArrays = [...tempArrays.slice(2,9)]
-      // Entferne überflüssige Verschachtelungen
-      tempArrays = tempArrays.map(arr => arr.flat());
-      // Ergebnismatrix erstellen
-      let result: any[] = [];
-      for (let i = 0; i < 4; i++) {
-        let row: any[] = [];
-        for(let j=0 ; j < 7 ; j++){
-          row.push(tempArrays[j][i]);
-        }
-        result.push(row);
-      }
-      
-      return result;
-    };
 
+      tempArrays.push(values); // Füge das Array der temporären Liste hinzu
+    } else {
+      // Wenn der Wert kein Objekt ist, füge den Wert direkt hinzu
+      tempArrays.push([value]);
+    }
+  }
+
+  // Entferne überflüssige Verschachtelungen
+  tempArrays = tempArrays.map(arr => arr.flat());
+
+  // Dynamisch die Anzahl der Zeilen und Spalten ermitteln
+  const numRows = tempArrays.length; // Anzahl der Zeilen entspricht der Länge von tempArrays
+  const numCols = Math.max(...tempArrays.map(arr => arr.length)); // Anzahl der Spalten entspricht der maximalen Länge der Arrays
+
+  // Ergebnismatrix erstellen
+  let result: any[] = [];
+  for (let i = 0; i < numRows; i++) {
+    let row: any[] = [];
+    for (let j = 0; j < numCols; j++) {
+      if (tempArrays[i] && tempArrays[i][j] !== undefined) {
+        row.push(tempArrays[i][j]);
+      } else {
+        row.push(null); // Füge Standardwert hinzu, wenn kein Wert vorhanden ist
+      }
+    }
+    result.push(row);
+  }
+
+  return result;
+};
     const findKey = (obj: Record<string, any>, key: string): any | undefined => {
       // Überprüfen, ob der Schlüssel im aktuellen Objekt vorhanden ist
       if (obj && key in obj) {
@@ -231,9 +237,10 @@ export default {
       if(data !== undefined){
         data = transformData(data); // Daten transformieren
         setPropertyForUserData(data);
+        console.log(data);
         //userData.value = data;
         //setProperty({ path: `${componentPath}__userData`, value: data});
-        console.log(getProperty( `${componentPath}__userData`));
+        //console.log(getProperty( `${componentPath}__userData`));
       } else {
         console.error(`Fehler: Schlüssel "${key}" nicht im Objekt gefunden.`);
       }
@@ -241,20 +248,15 @@ export default {
     const setPropertyForUserData = (data : any) => {
       setProperty({ path: `${componentPath}__userData`, value: data});
     }
-    const checkUserdataFromJson =  async () =>{
-      try{
-        // Annahme: getProperty gibt einen string oder null zurück
-      const computedPath = computed(() => getProperty(`${componentPath}__userDataFromJson_Path`));
-      //console.log(computedPath.value);
+    const checkUserdataFromJson = () =>{
+      // Annahme: getProperty gibt einen string oder null zurück
+      const computedPath = computed(() => getProperty(`${componentPath}__userDataFromJson`));
       if (computedPath.value) {
-        userDataFromJson_Path.value = computedPath.value; // Wert zuweisen
+        userDataFromJson.value = getProperty(computedPath.value); 
         userDataFromJson_Key.value = getProperty(`${componentPath}__userDataFromJson_Key`);
-        const datatmp : Array<any>= await loadJSONData(computedPath.value);
+        //const datatmp : Array<any>= await loadJSONData(computedPath.value);
         //rowAnzahl = computed(() => loadIntZahl(getProperty(`${componentPath}__rowAnzahl`)));
-        builduserData(datatmp , userDataFromJson_Key.value);
-      }
-      } catch (error) {
-        console.error('Fehler beim Abrufen der JSON-Daten:', error);
+        if(userDataFromJson.value && userDataFromJson_Key.value)builduserData(userDataFromJson.value , userDataFromJson_Key.value);
       }
     } 
     
@@ -667,7 +669,7 @@ export default {
       rowAnzahl,
       newData,
       spaltenMaxSumme,
-      userDataFromJson_Path
+      userDataFromJson
       /********************************************************************end */
     };
   }
