@@ -1,4 +1,3 @@
-<!--**************************************************************** Zakaria *********************************** -->
 <template>
     <div class="image-container">
         <img :src="bildPath" alt="Bild konnte nicht hochgeladen werden!!!" class="background-image">
@@ -24,7 +23,7 @@
 
 <script lang="ts">
     import { isNumber } from 'lodash';
-    import { defineComponent, computed, ref, watch, onMounted } from 'vue';
+    import { defineComponent, computed, ref, watch, onMounted, reactive } from 'vue';
 
     export default defineComponent({
         props: {
@@ -38,10 +37,16 @@
             const currentNode = computed(() => store.state.currentNode);
             // Generiert den Pfad zur Komponente basierend auf currentNode und componentID
             const componentPath = computed(() => `nodes__${currentNode.value}__components__${props.componentID}__component`);
-            
             const ValueFromJson = ref<Object | null>(null);
-            let datatmp = ref<any | null>('');
-        
+            // Tooltip-Status und -Nachricht verwalten
+            const tooltipVisible = ref<boolean[]>([]);
+            const tooltipMessage = ref<string[]>([]);
+            const bildPath = computed(() => loadData(`${componentPath.value}__pfad`));
+            const input = computed(() => `${componentPath.value}__inputFelder`);
+            let inputFelder = undefined;
+            const inputFelderValues = ref<{ [key: string]: string | number }>({});
+
+
             // Funktion zum Laden von Daten
             const loadData = (path: string) => {
                 const data = getProperty(path);
@@ -50,12 +55,6 @@
                 }
                 return null;
             };
-            // der Pfad zum Bild
-            const bildPath = computed(() => loadData(`${componentPath.value}__pfad`));
-            // der Pfad zu den Input-Feldern
-            const input = computed(() => `${componentPath.value}__inputFelder`);
-            let inputFelder = undefined;
-            const inputFelderValues = ref<{ [key: string]: string | number }>({});
 
             // Überprüft, ob input nicht null ist und lädt dann die Input-Daten
             if (input != null) {
@@ -75,17 +74,6 @@
                     }
                     return [];
                 };
-                
-                const handleValue = (placeholder : string , value_Key : string) =>{
-                    //console.log(placeholder,valueFromJsonKey);
-                    //console.log(ValueFromJson.value,value_Key);
-                    if(value_Key && ValueFromJson.value){
-                        let data : any = findKey(ValueFromJson.value,value_Key);
-                        inputFelderValues.value[placeholder] = data;
-                        setProperty({ path: `${componentPath.value}__inputFelderValues`, value: inputFelderValues });
-                        return data;
-                    }
-                    }
 
                 // Watcher to update inputFelderValues whenever inputFelder changes
                 watch(inputFelder, (newInputFelder) => {
@@ -117,11 +105,10 @@
                 }
                 setProperty({ path: `${componentPath.value}__inputFelderValues`, value: inputFelderValues });
                 
+                
             };
 
-            // Tooltip-Status und -Nachricht verwalten
-            const tooltipVisible = ref<boolean[]>([]);
-            const tooltipMessage = ref<string[]>([]);
+            
             // Funktion zum Handhaben des Mouseover-Ereignisses
             const handleMouseOver = (index:number ,placeholder:String) => {
                 const parts = placeholder.split(' ');
@@ -133,8 +120,9 @@
 
             // Funktion zum Handhaben des Mouseleave-Ereignisses
             const handleMouseLeave = (index:number) => {
-            tooltipVisible.value[index] = false; // Tooltip unsichtbar machen
+                tooltipVisible.value[index] = false; // Tooltip unsichtbar machen
             };
+
             const findKey = (obj: Record<string, any>, key: string): any | undefined => {
                 // Überprüfen, ob der Schlüssel im aktuellen Objekt vorhanden ist
                 if (key in obj) {
@@ -155,56 +143,42 @@
                 // Falls der Schlüssel nicht gefunden wurde
                 return undefined;
             };
+
             // Funktion zum Handhaben des Mouseover-Ereignisses
             const handlePlaceholder = (input : any) => {
                 if(ValueFromJson.value){
                     let data : any = findKey(ValueFromJson.value,input.ValueFromJson_Key);
                     if(data){
-                        inputFelderValues.value[input.placeholder] = data;
-                        setProperty({ path: `${componentPath.value}__inputFelderValues`, value: inputFelderValues });
+                        //inputFelderValues.value[input.placeholder] = Number(data);
+                        //setProperty({ path: `${componentPath.value}__inputFelderValues`, value: inputFelderValues });
                         return data;
+                    }
+                    else {
+                        let parts = input.placeholder.split(' ');
+                        if (parts.length === 2) {
+                            return `${parts[0]}`; // str1 + tiefgestelltes str2
+                        }
+                        return parts;
                     }
                 }
                 else{
-                let parts = input.placeholder.split(' ');
-                if (parts.length === 2) {
-                    return `${parts[0]}`; // str1 + tiefgestelltes str2
+                    let parts = input.placeholder.split(' ');
+                    if (parts.length === 2) {
+                        return `${parts[0]}`; // str1 + tiefgestelltes str2
+                    }
+                    return parts; // Wenn nicht zwei Teile, einfach den ursprünglichen Wert zurückgeben
                 }
-                return parts; // Wenn nicht zwei Teile, einfach den ursprünglichen Wert zurückgeben
-                //}
                 
             };
-        }
-            /*
-            const handleValue = (placeholder : string , valueFromJsonKey : string) =>{
-                console.log(placeholder,valueFromJsonKey);
-                
-                if(obj){
-                    Object.entries(inputFelderValues.value).forEach(([key, value]) => {
-                        //console.log(`${key}: ${value}`);
 
-                    });
-                    if (placeholder in inputFelderValues.value) {
-                    let data : any = findKey(datatmp,key);
-                    if(data){
-                        inputFelderValues.value[placeholder] = data;
-                        setProperty({ path: `${componentPath.value}__inputFelderValues`, value: inputFelderValues });
-                        return data;
-                    }
-                }
-                return '';
-            }
-            }*/
-            onMounted(async () => {
+            onMounted(() => {
                 // Annahme: getProperty gibt einen string oder null zurück
                 const computedPath = computed(() => getProperty(`nodes__${currentNode.value}__components__${props.componentID}__component__ValuesFromJson`));
                 if (computedPath.value) {
-                    ValueFromJson.value = getProperty(computedPath.value); // Wert zuweisen
-                    
-                    //if(ValueFromJson.value)handleValues(ValueFromJson.value)
-                    //datatmp.value = await loadJSONData(computedPath.value);
+                    ValueFromJson.value = getProperty(computedPath.value); 
                 }
-                });
+            });
+
             // Rückgabe der berechneten Werte zur Nutzung in der Template
             return {
                 bildPath,
@@ -312,7 +286,5 @@
     position: relative; /* Positioning context for tooltip */
 }
 
-
-/*************************************************************End  **********************************/
 
 </style>
