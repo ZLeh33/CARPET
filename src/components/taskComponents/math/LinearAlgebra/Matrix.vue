@@ -24,7 +24,8 @@
                 :columnIndex="j"
                 :storeObject="storeObject"
                 :componentID="id"
-                :isReadOnly="isReadOnly"
+                :isReadOnly="isReadOnly"  
+                :isFieldReadOnly="checkIsFieldReadOnly(columnLabel[j],i)"
                 :element="element"
                 :inputType="inputType ?? 'number'"
               />
@@ -122,6 +123,25 @@ export default {
     let rowAnzahl: any = undefined;
     let standardZeile = undefined;
 
+    const checkIsFieldReadOnly = (column_label:String, index:number) : boolean => {
+      const data = computed(()=> getProperty(`${componentPath}__field_status`));
+      if(data.value != null){
+        const column = data.value.find(column => column.name === column_label);
+        if(column){
+          if (column.hasOwnProperty(index)){
+            //console.log(column[index]);
+            //if(column[index] === true)return true;
+            //console.log(getProperty(column[index]));
+            if(getProperty(column[index])!== true)return true;
+            else return false;
+          }
+          else return false;
+        }
+        else return false;
+      }
+      else return false;
+    }
+
     const loadJSONData = async (path: string): Promise<object | null> => {
       try {
         const response = await fetch(path);
@@ -211,27 +231,6 @@ export default {
       return undefined;
     };
     
-    /*
-    const builduserData = (jsonData: Record<string, any>, key: string): void => {
-      let data : any = findKey(jsonData,key);
-      if(data !== undefined){
-        data = transformData(data); // Daten transformieren
-        //userData.value = data;
-        let newData: any[] = [];
-        for (let i = 0; i < 4; i++) {
-          newData.push(data[i]);
-          //console.log(newData[i]);
-          setProperty({ path: `${componentPath}__userData`, value: data[i] });
-          console.log(getProperty( `${componentPath}__userData`));
-        }
-        console.log(userData);
-        
-        
-      } else {
-        console.error(`Fehler: Schlüssel "${key}" nicht im Objekt gefunden.`);
-      }
-    };
-     */
     const builduserData = (jsonData: Record<string, any>, key: string): void => {
       let data : any = findKey(jsonData,key);
       if(data !== undefined){
@@ -669,7 +668,8 @@ export default {
       rowAnzahl,
       newData,
       spaltenMaxSumme,
-      userDataFromJson
+      userDataFromJson,
+      checkIsFieldReadOnly
       /********************************************************************end */
     };
   }

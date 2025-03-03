@@ -2,15 +2,14 @@
   <input
     :class="`i__${rowIndex}__${columnIndex}`"
     :data-index="[rowIndex, columnIndex]"
-    :readonly="isReadOnly"
-    :disabled="isReadOnly"
+    :readonly="isReadOnly || isFieldReadOnly"
+    :disabled="isReadOnly || isFieldReadOnly"
     @keyup="updateField"
     :type="inputType"
     :value="element"
     :min="min"
     :max="max"
   />
-  <!-- min max zakaria-->
 </template>
 
 <script lang="ts">
@@ -21,14 +20,13 @@ export default {
     rowIndex: Number,
     columnIndex: Number,
     isReadOnly: Boolean,
+    isFieldReadOnly: Boolean,
     element: Number,
     storeObject: Object,
     componentID: Number,
     inputType: String,
-    /****zakaria***/
     min: Number,
     max: Number
-    /*****End***/
   },
   setup(props) {
     const { store, getProperty, setProperty } = props.storeObject;

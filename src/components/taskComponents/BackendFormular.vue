@@ -154,11 +154,9 @@ export default {
     const currentTask = computed(() => getProperty("currentTask"));
 
     const fetchData = (instruction) => {
-      /******** Zakaria : nur zum testen was ist das Ergebnis von preparePayload-methode */
       const payload = preparePayload(instruction);
       if(saveFetchedDataInTemplate_Path.value != null) saveFetchData(payload);
       console.log("Payload:", payload); // Ausgabe des Payloads in der Konsole
-      /***********End  ******************/
       store.dispatch("fetchTaskData", {
         payload: preparePayload(instruction),
         endpoint: `${currentTask.value}/${instruction}`
