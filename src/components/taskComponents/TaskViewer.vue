@@ -5,9 +5,27 @@
         
         <!-- Paragraph anzeigen, wenn vorhanden -->
         <p v-if="paragraph" style="font-size: 2em;" v-html="paragraph"></p>
-        <div v-if="stringArray">
-            <p v-for="(item, index) in stringArray" :key="index" style="font-size: 1.5em;">{{ item }}</p>
+        
+        <div v-for="(categoryValue, categoryKey) in tmp" :key="categoryKey"  style="position: relative; left: 15%;">
+            <strong>{{ categoryKey }}</strong>
+            <ul>
+                <li v-for="(value1, key1) in categoryValue" :key="key1">
+                    <ul v-if="typeof value1 === 'object'">
+                        <strong style="position: relative; left: 5%;">{{ key1 }}</strong>:
+                        <li v-for="(value, key) in value1" :key="key" style="position: relative; left: 10%;">
+                            {{ key }}: {{ value }}
+                        </li>
+                    </ul>
+                    <ul v-else>
+                        <li style="position: relative; left: 10%;">
+                            {{ key1 }}: {{ value1 }}
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            
         </div>
+        
         
     </div>
 </template>
@@ -33,8 +51,17 @@ import { defineComponent, computed, watchEffect , ref} from 'vue';
                 return data;
             };
             
+            const heading = computed(() => loadData(`${componentPath.value}__titel`));
             
+            // path : parameter, in dem eine pfad gespeichert ist. Die Pfad soll als Object geladen
+            const path = computed(() => loadData(`${componentPath.value}__path`));
+            // Falls Path vorhanden, dann zögehörige Parameter
+            let obj = ref<Object | null>(null);
+            let key : string | null;
+            const paragraph = ref<string | null>('');
             
+
+
             const findKey = (obj: Record<string, any>, key: string): any | undefined => {
                 // Überprüfen, ob der Schlüssel im aktuellen Objekt vorhanden ist
                 if (key in obj) {
@@ -57,19 +84,16 @@ import { defineComponent, computed, watchEffect , ref} from 'vue';
                 return undefined;
             };
 
-            const heading = computed(() => loadData(`${componentPath.value}__titel`));
-            const path = computed(() => loadData(`${componentPath.value}__path`));
             
-            //console.log(labels);
-            // Reaktive Daten für paragraph und parameter
-            const paragraph = ref<string | null>('');
-            let obj = ref<Object | null>(null);
-            let key : string | null;
-            //const parameter = ref('');
-            //const result  =   ref('');
-
-            let stringArray = ref<string[]>([]); 
-
+            
+            
+            
+            const tmp = computed(() => {
+                const feedbackPath = getProperty(`${componentPath.value}__feedback`);
+                if (!feedbackPath) return null;
+                return getProperty(feedbackPath);
+            });
+            //console.log(tmp);
             watchEffect(() => {
                 // Hier sicherstellen, dass path.value nicht null oder undefined ist
                 if (path.value) {
@@ -77,36 +101,13 @@ import { defineComponent, computed, watchEffect , ref} from 'vue';
                     key = getProperty(`${componentPath.value}__key`);
                     if(obj && key)paragraph.value = findKey(obj,key);
                 }
-                else{
-                    //paragraph.value =  computed(() => getProperty(getProperty(`${componentPath.value}__feedback`))).value; 
-                    //console.log(paragraph.value);
-
-                    // Array leeren, bevor neue Werte hinzugefügt werden
-                    stringArray.value = [];
-                    for (let i = 1; i <= 4; i++) {
-                        let tmp = computed(() => getProperty(getProperty(`${componentPath.value}__feedback${i}`))).value;
-                        if (tmp != null) stringArray.value.push(`${tmp}`);
-                        if (tmp != null){
-                            setProperty({
-                                    path: `nodes__${currentNode.value}__components__${props.componentID}__component__1`,
-                                    value: false
-                            });
-                            setProperty({
-                                    path: `nodes__${currentNode.value}__components__${props.componentID}__component__3`,
-                                    value: false
-                            });
-                                }
-
-                    }
-                    
-                    
-                }
+                
             });
 
             return {
                 heading,
                 paragraph,
-                stringArray
+                tmp
             };
 
 
@@ -117,15 +118,11 @@ import { defineComponent, computed, watchEffect , ref} from 'vue';
 <style>
     .TextContainer {
     width: 95%;
-    max-height: 100vh; /* Beschränkt die Höhe auf die Ansichtshöhe */
+    
     background-color: lightgray;
     overflow: auto;
     overflow-x: hidden;
     padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem; /* Abstand zwischen den Elementen */
     }
 
     .parameter-item {
