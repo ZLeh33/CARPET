@@ -116,7 +116,7 @@ export default {
     const solutionData = computed(() => loadData(`${componentPath}__solutionData`));
     const validationData = computed(() => loadData(`${componentPath}__validationData`));
 
-    //************************************************************  ************************************/
+    
     const userDataFromJson = ref<Object | null>(null);
     const userDataFromJson_Key  = ref<string | null>(null);
     //const userData = ref<any[]>([]);
@@ -420,7 +420,6 @@ export default {
     }
   }*/
 
-    //**********************************************************END ******************************************************************/
 
 
     
