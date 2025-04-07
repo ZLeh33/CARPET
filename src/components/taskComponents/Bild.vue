@@ -9,6 +9,7 @@
                         class="input-field"
                         :type="input.type"
                         :id="'input' + (index + 1)"
+                        :readonly="isReadOnly(input.placeholder)"
                         :placeholder="handlePlaceholder(input)"
                         @input="handleInput(input.placeholder, $event)"
                     >
@@ -98,7 +99,7 @@
                     parsedValue = 0;
                 }
 
-                //Zum Test
+                
                 //console.log("Test Eingabefeld  "+placeholder+" : ",parsedValue);
                 if (placeholder in inputFelderValues.value) {
                     inputFelderValues.value[placeholder] = parsedValue;
@@ -171,6 +172,28 @@
                 
             };
 
+            const isReadOnly = (placeholder: string): boolean => {
+                const check = computed(() => getProperty(`${componentPath.value}__fields_readOnly`));
+                if (check.value != null) {
+                    const data = computed(() => getProperty(getProperty(getProperty(`${componentPath.value}__fields_readOnly`))));
+                    if (data.value != null) {
+                        //console.log(data.value);
+                        for (let key of Object.keys(data.value)) {
+                            if (placeholder.toLowerCase() === key.toLowerCase()) {
+                                console.log(data.value[key]['status']);
+                                if (data.value[key]['status'] === 'Erfolgreich' || data.value[key]['status'] === true) {
+                                    //console.log(value[key]['status']);
+                                    console.log(key);
+                                    console.log(placeholder);
+                                    return true;  // Rückgabe hier wird die Funktion sofort beenden
+                                }
+                            }
+                        }
+                    }
+                }
+                return false;  // Falls keine Bedingung erfüllt wird, wird false zurückgegeben
+            }
+
             onMounted(() => {
                 // Annahme: getProperty gibt einen string oder null zurück
                 const computedPath = computed(() => getProperty(`nodes__${currentNode.value}__components__${props.componentID}__component__ValuesFromJson`));
@@ -190,7 +213,8 @@
                 handleMouseLeave,
                 /*handleValue,*/
                 tooltipMessage,
-                tooltipVisible
+                tooltipVisible,
+                isReadOnly
             };
         }
     });
