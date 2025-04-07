@@ -123,23 +123,32 @@ export default {
     let rowAnzahl: any = undefined;
     let standardZeile = undefined;
 
-    const checkIsFieldReadOnly = (column_label:String, index:number) : boolean => {
-      const data = computed(()=> getProperty(`${componentPath}__field_status`));
-      if(data.value != null){
-        const column = data.value.find(column => column.name === column_label);
-        if(column){
-          if (column.hasOwnProperty(index)){
-            //console.log(column[index]);
-            //if(column[index] === true)return true;
-            //console.log(getProperty(column[index]));
-            if(getProperty(column[index])!== true)return true;
-            else return false;
+    const checkIsFieldReadOnly = (column_label: string, index: number): boolean => {
+      const check = computed(() => getProperty(`${componentPath}__field_status`));
+      if (check.value != null) {
+        const data = computed(() => getProperty(getProperty(getProperty(`${componentPath}__field_status`))));
+        if (data.value != null) {
+          //console.log(data.value);
+          for (let key of Object.keys(data.value)) {
+            const value = data.value[key];
+            if (typeof value === 'object' && value != null && Object.keys(value).length > 0) {
+              //console.log(value);
+              if (column_label.includes(key)) {
+                //console.log(key);
+                for (let subKey of Object.keys(value)) {
+                  if (subKey.includes(String(index + 1))) {
+                    if (value[subKey]['status'] === 'Erfolgreich' || value[subKey]['status'] === true) {
+                      console.log(value[subKey]['status']);
+                      return true;  // Rückgabe hier wird die Funktion sofort beenden
+                    }
+                  }
+                }
+              }
+            }
           }
-          else return false;
         }
-        else return false;
       }
-      else return false;
+      return false;  // Falls keine Bedingung erfüllt wird, wird false zurückgegeben
     }
 
     const loadJSONData = async (path: string): Promise<object | null> => {
@@ -157,30 +166,30 @@ export default {
       }
     };
     const transformData = (data: any): Array<any> => {
-  let tempArrays: Array<any> = [];
+      let tempArrays: Array<any> = [];
 
-  // Iteriere über die Items im Datenobjekt
-  for (const [key, value] of Object.entries(data)) {
-    if (typeof value === 'object' && !Array.isArray(value)) {
-      // Wenn der Wert ein Objekt ist, füge die Werte des Objekts hinzu
-      const values = Object.values(value);
+      // Iteriere über die Items im Datenobjekt
+      for (const [key, value] of Object.entries(data)) {
+        if (typeof value === 'object' && !Array.isArray(value)) {
+          // Wenn der Wert ein Objekt ist, füge die Werte des Objekts hinzu
+          const values = Object.values(value);
 
-      // Bearbeite die Werte des Objekts
-      for (let i = 0; i < values.length; i++) {
-        const r = values[i];
-        if (typeof r === 'number') {
-          values[i] = Math.floor(r); // Wandelt Zahlen in Integer um
-        } else if (Array.isArray(r)) {
-          values[i] = r.map(val => parseFloat(val)); // Wandelt Arrays in Floats um
+          // Bearbeite die Werte des Objekts
+          for (let i = 0; i < values.length; i++) {
+            const r = values[i];
+            if (typeof r === 'number') {
+              values[i] = Math.floor(r); // Wandelt Zahlen in Integer um
+            } else if (Array.isArray(r)) {
+              values[i] = r.map(val => parseFloat(val)); // Wandelt Arrays in Floats um
+            }
+          }
+
+          tempArrays.push(values); // Füge das Array der temporären Liste hinzu
+        } else {
+          // Wenn der Wert kein Objekt ist, füge den Wert direkt hinzu
+          tempArrays.push([value]);
         }
-      }
-
-      tempArrays.push(values); // Füge das Array der temporären Liste hinzu
-    } else {
-      // Wenn der Wert kein Objekt ist, füge den Wert direkt hinzu
-      tempArrays.push([value]);
     }
-  }
 
   // Entferne überflüssige Verschachtelungen
   tempArrays = tempArrays.map(arr => arr.flat());
@@ -711,7 +720,7 @@ input::-webkit-inner-spin-button {
 .matrix {
   width: 100%;
   height: 100%;
-  min-height: 50vh;
+  min-height: 55vh;
   border-collapse: collapse;
   table-layout: fixed;
 }
