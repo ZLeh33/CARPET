@@ -21,10 +21,8 @@ export default {
   props: {
     element: Object,
     elementId: String,
-    /************Zakaria ***********************************/
     componentID: String,
     storeObject: Object
-    /*******************end ******************************/
   },
   setup(props, { emit }) {
     
@@ -46,7 +44,6 @@ export default {
         "formFill",
         () => {
           
-          /**********************************Zakaria *********************************************/
           //setProperty(valuepath,value);
           setProperty({
           path: `nodes__${currentNode.value}__components__${props.componentID}__component__form__seed__value`,
@@ -54,7 +51,6 @@ export default {
           });
           
           event.target.blur();
-          /************************************End *************************************************/
           evaluateValue(props);
           emit("updateElement", event);
           
