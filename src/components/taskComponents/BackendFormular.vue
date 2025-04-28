@@ -133,8 +133,12 @@ export default {
           if (dataPfad != null) {
             const data = computed(() => getProperty(`${path}__component__data`));
             Object.entries(data.value).forEach(([key, valuePath]) => {
-              const value = getProperty(valuePath);
-              payload[key] = value;
+              console.log(valuePath);
+              if(typeof valuePath === 'object')payload[key] = valuePath;
+              else {
+                const value = getProperty(valuePath);
+                payload[key] = value;
+              }
             });
           }
 
