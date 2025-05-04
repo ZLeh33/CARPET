@@ -1,14 +1,16 @@
 <template>
-  <select :class="`${elementId}__initial`" @change="emitEvent" :value="element.initial">
-    <option v-for="(option, i) in element.options" :key="i">
-      {{ option }}
-    </option>
-  </select>
+  <div class="form-group">
+    <select :class="`${elementId}__initial`" @change="emitEvent" :value="element.initial">
+      <option v-for="(option, i) in element.options" :key="i">
+        {{ option }}
+      </option>
+    </select>
+  </div>
 </template>
 
 <script lang="ts">
-import type { forEach } from "lodash";
-import { onMounted, computed, ref } from "vue";
+import { add, get, type forEach } from "lodash";
+import { onMounted, computed, ref,watch } from "vue";
 
 export default {
   name: "RangeFormField",
@@ -19,10 +21,11 @@ export default {
     componentID: Number,
   },
   setup(props, { emit }) {
-    const { store, getProperty } = props.storeObject;
+    const { store, getProperty, setProperty } = props.storeObject;
     const currentTask = getProperty("currentTask");
     const currentNode = computed(() => store.state.currentNode);
-    const { action } = props.element;
+    const { action  } = props.element;
+    const path = `nodes__${currentNode}__components__${props.componentID}`;
     const OptionsFromJson = ref<Object | null>(null);
     const OptionsFromJson_Key = ref<string | null>(null);
     const executeAction = () => {
@@ -33,6 +36,8 @@ export default {
       });
     };
     
+    
+    // Funktion, um den Wert eines Schlüssels in einem verschachtelten Objekt zu finden
     const findKey = (obj: Record<string, any>, key: string): any | undefined => {
       // Überprüfen, ob der Schlüssel im aktuellen Objekt vorhanden ist
       if (obj && key in obj) {
@@ -76,6 +81,7 @@ export default {
         console.error(`Fehler: Schlüssel "${key}" nicht im Objekt gefunden.`);
       }
     };
+    
     onMounted(async () => {
       // Annahme: getProperty gibt einen string oder null zurück
       const computedPath = computed(() => getProperty(`nodes__${currentNode.value}__components__${props.componentID}__component__form__nodeAmount__OptionsFromJson`));
@@ -89,12 +95,14 @@ export default {
       }
       executeAction();
     });
-
-    const emitEvent = (event) => {
+    
+    // Hier wird die Methode `emitEvent` definiert, die das Event auslöst
+    // und die Aktion ausführt
+    const emitEvent = (event : any) => {
       emit("updateElement", event);
       executeAction();
     };
-    return { emitEvent };
+    return { emitEvent};
   },
 };
 </script>
@@ -106,4 +114,5 @@ select {
   text-align-last: center;
   text-align: center;
 }
+
 </style>
