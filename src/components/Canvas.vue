@@ -97,6 +97,7 @@ import MoleculeEditor from "@/components/taskComponents/Chemistry/MoleculeEditor
 import Chart from "@/components/taskComponents/Charts/Chart.vue";
 import EchtButton from "@/components/taskComponents/EchtButton.vue";
 import Bild from "@/components/taskComponents/Bild.vue";
+import absolutInputsOnImage from "@/components/taskComponents/absolutInputsOnImage.vue";
 import BackendFormular from "@/components/taskComponents/BackendFormular.vue";
 import TaskViewer from "@/components/taskComponents/TaskViewer.vue";
 import CheckboxGroup from "@/components/taskComponents/CheckboxGroup.vue";
@@ -133,6 +134,7 @@ export default {
     Chart,
     EchtButton,
     Bild,
+    absolutInputsOnImage,
     BackendFormular,
     TaskViewer,
     CheckboxGroup

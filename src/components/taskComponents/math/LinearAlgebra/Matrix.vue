@@ -120,7 +120,7 @@ export default {
     const userDataFromJson = ref<Object | null>(null);
     const userDataFromJson_Key  = ref<string | null>(null);
     //const userData = ref<any[]>([]);
-    let rowAnzahl: any = undefined;
+    let rowAnzahl = ref<number | undefined>(undefined);
     let standardZeile = undefined;
 
     const checkIsFieldReadOnly = (column_label: string, index: number): boolean => {
@@ -276,7 +276,12 @@ export default {
     const rowAnzahlCheck = getProperty(`${componentPath}__rowAnzahl`);
     if (rowAnzahlCheck != undefined) {
       // die Anzahl der Zeilen laden
-      rowAnzahl = computed(() => loadIntZahl(getProperty(`${componentPath}__rowAnzahl`)));
+      if(Number.isInteger(rowAnzahlCheck)){
+        rowAnzahl.value = rowAnzahlCheck;
+      } 
+      else {
+        rowAnzahl = computed(() => loadIntZahl(getProperty(`${componentPath}__rowAnzahl`)));
+      }
       standardZeile = computed(() => loadData(`${componentPath}__standardZeile`));
     }
     
@@ -294,7 +299,7 @@ export default {
           for (i; i < rowAnzahl.value; i++) {
             // Füge 'standardSpalte' zu 'newData' hinzu
             newData.push([...standardZeile?.value]);
-            //console.log(standardSpalte);
+            console.log(standardZeile);
             }
         } 
         // Wenn 'rowAnzahl.value' kleiner als 'i' aber größer oder gleich 0 ist
