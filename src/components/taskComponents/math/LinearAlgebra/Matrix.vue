@@ -4,7 +4,6 @@
         <table :id="`matrix_${id}`" class="matrix">
           <tr v-if="columnLabel && columnLabel.length">
             <p class="placeholder">&nbsp;</p>
-            <!--zakaria span mouseover-->
             <th v-for="(label, i) in columnLabel" :key="i" @mouseover="handleMouseOver(i)" @mouseleave="handleMouseLeave">
               <p class="matrix_label column_label">{{ label }}</p>
               <span v-show="tooltipVisible && hoveredColumn === i" id="tooltiptext">{{ tooltipMessage }}</span>
@@ -669,7 +668,6 @@ export default {
       isReadOnly,
       selectedMethods: selectedMethods,
       inputType,
-      //***************************************************************zakaria***************************
       columnRange,
       getMinValueForColumn,
       getMaxValueForColumn,
@@ -683,14 +681,12 @@ export default {
       spaltenMaxSumme,
       userDataFromJson,
       checkIsFieldReadOnly
-      /********************************************************************end */
     };
   }
 };
 </script>
 
 <style scoped>
-/*********zakaria**************************** */
 #tooltiptext {
   top: 0%;
   left: 5px;
@@ -706,7 +702,6 @@ export default {
   z-index: 1000;
 }
 
-/********************END*************************** */
 
 .matrix-wrapper {
   width: 100%;

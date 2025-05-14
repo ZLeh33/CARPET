@@ -121,7 +121,6 @@ export default {
       });
     };
 
-    /************************************************Zakaria  **************************************/
     const preparePayload = (instruction) => {
       const parameters: { [key: string]: any } = Object.entries(elements.value).reduce(
         (parameters, [name, parameter]: [string, { [key: string]: any }]) => {
@@ -153,7 +152,6 @@ export default {
 
       return payload;
     };
-    /************************************************End  ***********************************/
 
     const currentTask = computed(() => getProperty("currentTask"));
 
