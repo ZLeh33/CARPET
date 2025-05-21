@@ -148,7 +148,6 @@ export default {
         }
       }
     );
-    /*******************************************      Zakaria ******************************************************/
     const checkValidity = (event: Event) => {
       const element = <HTMLInputElement>event.target;
       const value = element.value ? parseFloat(element.value) : null;
@@ -165,7 +164,7 @@ export default {
         setProperty({ path: `nodes__${currentNode.value}__components__${props.componentID}__isValid`, value }); 
       }
     };
-    /********************************************** End ******************************************************** */
+    
     
     return { updateField , checkValidity };
   }
@@ -173,7 +172,6 @@ export default {
 </script>
 
 <style scoped>
-/************************************** Zakaria **************************/
 .out-of-range {
   border: 7px solid red; /* Ändere die Breite der Linie und den Stil */
 }
