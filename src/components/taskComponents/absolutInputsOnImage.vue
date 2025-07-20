@@ -24,7 +24,7 @@
                         maxWidth: '100%',
                         maxHeight: '80%',
                     }"
-                    @input="handleInput(item)"
+                    @input="handleInput(item, $event)"
                     @mouseover="handleMouseOver(item,$event)" 
                     @mouseleave="handleMouseLeave(item)"
                 />
@@ -119,14 +119,11 @@
              * If invalid, resets the value to the start value after a delay.
              * @param {Object} item - The input field object.
              */
-            const handleInput = (item: Object) => {
+            const handleInput = (item: Object, event: Event) => {
+                item.value = (event.target as HTMLInputElement).value;
+                if(valuesFromJson.value)valuesFromJson.value[item.ValueFromJson_Key] = item.value;
                 const value = item.value;
-                if(value > item.max || value < item.min){
-                    setTimeout(() => {
-                        item.value = item.startValue;
-                    }, 1500);
-                }
-                else {
+                if(value < item.max || value > item.min){
                     inputFelderValues.value[item.placeholder] = value;
                     setProperty({ path: `${componentPath.value}__inputFelderValues`, value: inputFelderValues });
                 }
