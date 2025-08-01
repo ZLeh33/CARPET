@@ -56,6 +56,9 @@ export default defineComponent({
     const datasets = computed(() => loadDatasets(`${componentPath.value}__datasets`));
     const labels = computed(() => loadLabels(`${componentPath.value}__labels`));
     const options = computed(() => getProperty(`${componentPath.value}__options`));
+    
+    const excelData = computed(() => getProperty(getProperty(`${componentPath.value}__excelData`)));
+    //console.log("Excel Data:", excelData.value);
 
     const chartId = `myChart${props.componentID}`;
     const chartRef = ref<HTMLCanvasElement | null>(null);
@@ -137,11 +140,36 @@ export default defineComponent({
     };
 
     const saveAsImage = () => {
-      if (chartRef.value) {
-        const link = document.createElement('a');
-        link.href = chartRef.value.toDataURL('image/png');
-        link.download = 'chart.png';
+      const canvas = chartRef.value;
+      if (!canvas) return;
+
+      //  Create a new canvas with white background
+      const whiteBgCanvas = document.createElement("canvas");
+      whiteBgCanvas.width = canvas.width;
+      whiteBgCanvas.height = canvas.height;
+      const ctx = whiteBgCanvas.getContext("2d");
+
+      if (ctx) {
+        // white background
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Original-Canvas override
+        ctx.drawImage(canvas, 0, 0);
+
+        // save picture
+        const link = document.createElement("a");
+        link.href = whiteBgCanvas.toDataURL("image/png");
+        link.download = "chart.png";
         link.click();
+      }
+
+      // Save excel-file
+      if (excelData.value) {
+        const excelLink = document.createElement("a");
+        excelLink.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${excelData.value}`;
+        excelLink.download = "fermentation_data.xlsx";
+        excelLink.click();
       }
     };
 

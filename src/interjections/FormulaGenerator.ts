@@ -1,6 +1,7 @@
 import type { IStore } from "@/helpers/TaskGraphUtility";
 import type { IFormulaGenerator } from "@/interfaces/interjectionInterfaces/formulaGeneratorInterface";
-
+import nerdamer from 'nerdamer/all.min.js';
+import { parse } from 'mathjs';
 const mathlex = window.MathLex;
 
 // const syntaxTree = mathlex.parse("z = sum(v_i/w_i^p,i)/sum(1/w_i^p ,i)");
@@ -40,13 +41,36 @@ const formulaGenerator = (
     {}
   );
 
+
+  
+  //const tex = nerdamer(test);
+  //const tex = mathlex.parse(texFormula);
+  //const latex= mathlex.render(tex, "latex");
+  //const test = "(a / (b - c)) + (d * e) + f";
+  //const test = "sum(x+y, x, 1, 20)" 
+  //const test = "sum(v_i / w_i^2, i, 0, n)";
+  //const test = "r = sum(v_i /w_i^2 ,i,0,n) / sum(1/w_i^2 ,i,0,n)";
+  //const test  = "r = product(v_i / w_i^2, i, 0, n)" 
+  //const test = "r = integrate(10 * x / (4 * x^2 + 24 * x + 20 ), x)";
+  //const test  = "factor( x^2 - 3 * x - 10)"
+  //const test = "diff(n,t) = (diff(n_0,t) - diff(n_a,t) + V_R * sum( r , j , 0 , n))";
+  //const test = "diff(Q,t) = (diff(m,t) * c_p T)_0 + (- Delta_R(H)) * V_R * ( sum(r, j,0,n ) ) + k_w * A * (T_w - T)"
+  /*
+  let latex = nerdamer.convertToLaTeX(test);
+  // Entferne \limits and mathrm komplett
+  latex = latex.replace(/\\limits/g, "");
+  latex = latex.replace(/\\mathrm/g, "");
+  console.log(latex);
+  */
+  //const abstractSyntaxTree = mathlex.parse(formula);
   const abstractSyntaxTree = mathlex.parse(formula);
-  const tex = mathlex.parse(texFormula);
-  const latex = mathlex.render(tex, "latex");
+  const expr = nerdamer(texFormula);
+  const latex = expr.toTeX().replace(/\\limits/g, "");
+  //latex  = latex.replace(/\\limits/g, ""); 
   const sage = mathlex.render(abstractSyntaxTree, "sage");
   const ast = ASTParser(abstractSyntaxTree, variableTable);
   const aladin = replaceVariables(ast, variableTable);
-
+  
   setProperty({ path: `nodes__${currentNode}__components__${component_id}__component__tex`, value: latex });
   setProperty({ path: `nodes__${currentNode}__components__${component_id}__component__sage`, value: sage });
   setProperty({ path: `nodes__${currentNode}__components__${component_id}__component__aladinAST`, value: aladin });
@@ -160,37 +184,39 @@ const functionHandler = (functionType: string, subtrees: Array<IParsedTree>, var
 
     const operationTable: { [key: string]: string } = {
       sum: "+",
-      prod: "*"
+      product: "*"
+      //subscriptHandler  - Symbol
+      //derivativeHandler - Symbol
+      //deltaHandel - Symbol
     };
     const operation = operationTable[functionType];
 
     const deepCopy = (obj: any) => JSON.parse(JSON.stringify(obj));
 
-    let replacedTerm;
-    let previousOperand;
+    // Liste aller Operanden
+    const terms: any[] = [];
+
     for (let i = startIndex; i < endIndex; i++) {
       const replacedOperand = replaceVariables(deepCopy(operand[0]), variableTable, i);
-      if (i === startIndex) {
-        previousOperand = replacedOperand;
-        continue;
-      }
-      const parsedTerm: {} = {
-        type: "BaseOperation",
-        options: { operation },
-        slots: [
-          { name: "firstOperand", terms: [previousOperand] },
-          { name: "secondOperand", terms: [replacedOperand] }
-        ]
-      };
-      previousOperand = parsedTerm;
-
-      if (i === endIndex - 1) {
-        replacedTerm = parsedTerm;
-      }
+      terms.push(replacedOperand);
     }
-    return [replacedTerm];
-  };
 
+    // Alle Operanden in eine BaseOperation packen
+    return [
+      terms.reduce((acc, term) => {
+        if (!acc) return term; // erster Operand direkt übernehmen
+        return {
+          type: "BaseOperation",
+          options: { operation },
+          slots: [
+            { name: "firstOperand", terms: [acc] },
+            { name: "secondOperand", terms: [term] }
+          ]
+        };
+      }, null)
+    ];
+  };
+  
   const rootHandler = () => {
     const [radicand, exponent] = subtrees;
     const parsedRadicand = { name: "radicand", terms: radicand };
@@ -207,9 +233,12 @@ const functionHandler = (functionType: string, subtrees: Array<IParsedTree>, var
 
   const functionMap: { [key: string]: Function } = {
     sum: rangeHandler,
-    prod: rangeHandler,
+    product: rangeHandler,
     root: rootHandler,
     sqrt: rootHandler
+    //subscriptHandler :  es ist vorhanden aber muss noch getestet ob es reibungslos funktioniert
+    //derivativeHandler : es muss entwickelt (für Ableitungen)
+    //deltaHandel : es muss entwickelt (aber zuerst mal fragen, ob die Formel soll durch andere Formel ersetzt werden)
   };
 
   return functionMap[functionType]();

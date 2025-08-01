@@ -28,6 +28,7 @@ export const evaluateValue = (props: { elementId: number; element: any }) => {
   const input: HTMLInputElement = document.querySelector(`.${props.elementId}__value`);
   const value = parseFloat(input.value.replace(",", "."));
   const condition = value >= min && value <= max;
-
+  //console.error(min,max);
+  //console.error(input.value,value);
   setValidity(input, condition);
 };
