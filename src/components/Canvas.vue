@@ -101,6 +101,7 @@ import absolutInputsOnImage from "@/components/taskComponents/absolutInputsOnIma
 import BackendFormular from "@/components/taskComponents/BackendFormular.vue";
 import TaskViewer from "@/components/taskComponents/TaskViewer.vue";
 import CheckboxGroup from "@/components/taskComponents/CheckboxGroup.vue";
+import LatexFormula from "@/components/taskComponents/LatexFormula.vue";
 export default {
   name: "Canvas",
   components: {
@@ -137,7 +138,8 @@ export default {
     absolutInputsOnImage,
     BackendFormular,
     TaskViewer,
-    CheckboxGroup
+    CheckboxGroup,
+    LatexFormula
   },
   props: {
     storeObject: Object
