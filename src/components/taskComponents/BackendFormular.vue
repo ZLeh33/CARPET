@@ -131,6 +131,7 @@ export default {
           const dataPfad = computed(() => `${path}__component__data`);
           if (dataPfad != null) {
             const data = computed(() => getProperty(`${path}__component__data`));
+            console.log(data);
             Object.entries(data.value).forEach(([key, valuePath]) => {
               console.log(valuePath);
               if(typeof valuePath === 'object')payload[key] = valuePath;
@@ -138,6 +139,7 @@ export default {
                 const value = getProperty(valuePath);
                 payload[key] = value;
               }
+              console.log(payload);
             });
           }
 

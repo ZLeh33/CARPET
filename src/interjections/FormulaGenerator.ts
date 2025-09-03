@@ -54,27 +54,26 @@ const formulaGenerator = (
   //const test = "r = integrate(10 * x / (4 * x^2 + 24 * x + 20 ), x)";
   //const test  = "factor( x^2 - 3 * x - 10)"
   //const test = "diff(n,t) = (diff(n_0,t) - diff(n_a,t) + V_R * sum( r , j , 0 , n))";
-  //const test = "diff(Q,t) = (diff(m,t) * c_p T)_0 + (- Delta_R(H)) * V_R * ( sum(r, j,0,n ) ) + k_w * A * (T_w - T)"
-  /*
+  const test = "diff(Q,t) = (diff(m,t) * c_p T)_0 + (- Delta_R(H)) * V_R * ( sum(r, j,0,n ) ) + k_w * A * (T_w - T)"
+  
   let latex = nerdamer.convertToLaTeX(test);
   // Entferne \limits and mathrm komplett
   latex = latex.replace(/\\limits/g, "");
   latex = latex.replace(/\\mathrm/g, "");
   console.log(latex);
-  */
-  //const abstractSyntaxTree = mathlex.parse(formula);
-  const abstractSyntaxTree = mathlex.parse(formula);
-  const expr = nerdamer(texFormula);
-  const latex = expr.toTeX().replace(/\\limits/g, "");
-  //latex  = latex.replace(/\\limits/g, ""); 
-  const sage = mathlex.render(abstractSyntaxTree, "sage");
-  const ast = ASTParser(abstractSyntaxTree, variableTable);
-  const aladin = replaceVariables(ast, variableTable);
   
-  setProperty({ path: `nodes__${currentNode}__components__${component_id}__component__tex`, value: latex });
-  setProperty({ path: `nodes__${currentNode}__components__${component_id}__component__sage`, value: sage });
-  setProperty({ path: `nodes__${currentNode}__components__${component_id}__component__aladinAST`, value: aladin });
-  setProperty({ path: `nodes__${currentNode}__components__${component_id}__component__AST`, value: ast });
+  //const abstractSyntaxTree = mathlex.parse(formula);
+const abstractSyntaxTree = mathlex.parse(formula);
+const expr = nerdamer(texFormula);
+//const latex = expr.toTeX().replace(/\\limits/g, "");
+const sage = mathlex.render(abstractSyntaxTree, "sage");
+const ast = ASTParser(abstractSyntaxTree, variableTable);
+const aladin = replaceVariables(ast, variableTable);
+
+setProperty({ path: `nodes__${currentNode}__components__${component_id}__component__tex`, value: latex });
+setProperty({ path: `nodes__${currentNode}__components__${component_id}__component__sage`, value: sage });
+setProperty({ path: `nodes__${currentNode}__components__${component_id}__component__aladinAST`, value: aladin });
+setProperty({ path: `nodes__${currentNode}__components__${component_id}__component__AST`, value: ast });
 };
 
 const replaceVariables = (subtree: IParsedTree, variableTable: IVariableTable, index: number = null) => {
@@ -97,7 +96,6 @@ const replaceVariables = (subtree: IParsedTree, variableTable: IVariableTable, i
     return null;
   };
 
-  // const nested = keys.includes("slots") ? subtree["slots"] : subtree["terms"];
   const nested = extractNested(keys);
   if (nested) {
     for (let i = 0; i < nested.length; i++) {
@@ -112,7 +110,6 @@ const replaceVariables = (subtree: IParsedTree, variableTable: IVariableTable, i
 
 // ExpressionHandlers
 const negativeHandler = (operator: string, leftSubtree: IParsedTree, rightSubtree: IParsedTree) => {
-  // TODO: handle case when Negative wraps non-scalar
   return [
     {
       type: "scalar",
@@ -173,10 +170,13 @@ const subscriptHandler = (operator: string, leftSubtree: IParsedTree, rightSubtr
   return [{ ...leftSubtree[0], index: rightSubtree[0].name }];
 };
 const inclusionHandler = (operator: string, leftSubtree: IParsedTree, rightSubtree: IParsedTree) => {
-  // returns just the Set variable
   return rightSubtree;
 };
+
+// FunctionHandler
 const functionHandler = (functionType: string, subtrees: Array<IParsedTree>, variableTable: { [key: string]: any }) => {
+  console.log("functionType:", functionType, "subtrees:", subtrees);
+
   const rangeHandler = () => {
     const [operand, indexVariable, startVariable, endVariable] = subtrees;
     const startIndex = startVariable[0].value;
@@ -185,26 +185,20 @@ const functionHandler = (functionType: string, subtrees: Array<IParsedTree>, var
     const operationTable: { [key: string]: string } = {
       sum: "+",
       product: "*"
-      //subscriptHandler  - Symbol
-      //derivativeHandler - Symbol
-      //deltaHandel - Symbol
     };
     const operation = operationTable[functionType];
 
     const deepCopy = (obj: any) => JSON.parse(JSON.stringify(obj));
 
-    // Liste aller Operanden
     const terms: any[] = [];
-
     for (let i = startIndex; i < endIndex; i++) {
       const replacedOperand = replaceVariables(deepCopy(operand[0]), variableTable, i);
       terms.push(replacedOperand);
     }
 
-    // Alle Operanden in eine BaseOperation packen
     return [
       terms.reduce((acc, term) => {
-        if (!acc) return term; // erster Operand direkt übernehmen
+        if (!acc) return term;
         return {
           type: "BaseOperation",
           options: { operation },
@@ -216,7 +210,7 @@ const functionHandler = (functionType: string, subtrees: Array<IParsedTree>, var
       }, null)
     ];
   };
-  
+
   const rootHandler = () => {
     const [radicand, exponent] = subtrees;
     const parsedRadicand = { name: "radicand", terms: radicand };
@@ -231,18 +225,41 @@ const functionHandler = (functionType: string, subtrees: Array<IParsedTree>, var
     ];
   };
 
+  const derivativeHandler = (subtrees?: Array<IParsedTree>) => {
+    if (!subtrees || subtrees.length === 0) {
+      console.warn("derivativeHandler ohne Argumente aufgerufen!");
+      return [];
+    }
+
+    // Fallback: alles in Arrays einpacken
+    const [operand = [], variable = [], order = null] =
+      subtrees.map(st => (Array.isArray(st) ? st : [st]));
+
+    return [
+      {
+        type: "derivative",
+        slots: [
+          { name: "operand", terms: operand },
+          { name: "variable", terms: variable },
+          ...(order ? [{ name: "order", terms: order }] : [])
+        ]
+      }
+    ];
+  };
+
+
+
   const functionMap: { [key: string]: Function } = {
     sum: rangeHandler,
     product: rangeHandler,
     root: rootHandler,
-    sqrt: rootHandler
-    //subscriptHandler :  es ist vorhanden aber muss noch getestet ob es reibungslos funktioniert
-    //derivativeHandler : es muss entwickelt (für Ableitungen)
-    //deltaHandel : es muss entwickelt (aber zuerst mal fragen, ob die Formel soll durch andere Formel ersetzt werden)
+    sqrt: rootHandler,
+    diff: derivativeHandler 
   };
 
   return functionMap[functionType]();
 };
+
 const expressionHandler: IExpressionHandler = {
   Equal: (operation: string, leftSubtree: IParsedTree, rightSubtree: IParsedTree) => {
     const operationTable: { [key: string]: string } = {
@@ -275,15 +292,8 @@ const ASTParser = (abstractSyntaxTree: AbstractSyntaxTree, variableTable: IVaria
     if (operation === "Variable") return [{ type: "variable", name: operand1 }];
   }
   if (operation === "Function") {
-    // force type conversions in case of Function, see example ->
-    //  [
-    //     'Function',
-    //     [ 'Variable', 'root' ],
-    //     [ [ 'Literal', 'Int', 2 ], [ 'Literal', 'Int', 5 ] ]
-    //   ]
     const functionType: string = operand1[1] as unknown as string;
     const operands = operand2.map((term) => ASTParser(term as unknown as AbstractSyntaxTree, variableTable));
-
     return functionHandler(functionType, operands, variableTable);
   }
   const leftSubtree = ASTParser(operand1, variableTable);

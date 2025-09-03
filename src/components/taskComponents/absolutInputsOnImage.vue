@@ -126,6 +126,7 @@
                 if(value < item.max || value > item.min){
                     inputFelderValues.value[item.placeholder] = value;
                     setProperty({ path: `${componentPath.value}__inputFelderValues`, value: inputFelderValues });
+                    console.log(getProperty(`${componentPath.value}__inputFelderValues`));
                 }
             };
 
