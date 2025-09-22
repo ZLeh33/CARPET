@@ -105,10 +105,14 @@
                     if(key){
                         if(valuesFromJson.value[key]){
                             const value = valuesFromJson.value[key];
+                            inputFelderValues.value[item.placeholder] = value;
+                            setProperty({ path: `${componentPath.value}__inputFelderValues`, value: inputFelderValues });
                             return value;
                         }
                     }
                 }
+                inputFelderValues.value[item.placeholder] = item.value;
+                setProperty({ path: `${componentPath.value}__inputFelderValues`, value: inputFelderValues });
                 return item.value;
             }
 
