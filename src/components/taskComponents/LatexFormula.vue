@@ -1,62 +1,57 @@
 <template>
-  <h2>MathLive with Vue</h2>
-
-  <!-- Eingabefeld -->
-  <math-field 
-    ref="mathfieldRef"
-    :options="{ smartFence: false, virtualKeyboardMode: 'onfocus' }"
-    style="width: 90%; height: 100px;"
-  >
-  </math-field>
-
-  <div class="output">LaTeX: {{ formula }}</div>
-
-  <!-- Vorschau -->
-  <div>Gerenderte Formel:</div>
-  <math-field 
-    ref="previewRef"
-    :options="{ readOnly: true }"
-    style="width: 90%; height: 80px;"
-  >
-  </math-field>
+  <div class="p-4">
+    <h2>Input</h2>
+    
+    <!-- Mathfield -->
+    <math-field ref="mathfield" style="font-size: 1.5em;">x^2+2x+1</math-field>
+    
+    <button @click="parseFormula" style="margin-top: 1em;">Parse Formula</button>
+    
+    <h3>Output:</h3>
+    <pre>{{ output }}</pre>
+  </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
-import 'mathlive';
+<script setup>
+import { onMounted, ref } from "vue";
+import { MathfieldElement } from "mathlive";
+import { ComputeEngine } from "@cortex-js/compute-engine";
 
-export default defineComponent({
-  setup() {
-    const mathfieldRef = ref<HTMLElement | null>(null);
-    const previewRef = ref<HTMLElement | null>(null);
-    const formula = ref("");
+const mathfield = ref(null);
+const output = ref("");
 
-    const updateFormula = () => {
-      if (mathfieldRef.value && previewRef.value) {
-        // @ts-ignore
-        formula.value = (mathfieldRef.value as any).getValue('latex');
-        // @ts-ignore
-        (previewRef.value as any).setValue(formula.value, { format: 'latex' });
-      }
-    };
+let ce;
 
-    onMounted(() => {
-      if (mathfieldRef.value) {
-        mathfieldRef.value.addEventListener('input', updateFormula);
-      }
-    });
-
-    return {
-      mathfieldRef,
-      previewRef,
-      formula
-    };
-  }
+onMounted(() => {
+  ce = new ComputeEngine();
 });
+
+function parseFormula() {
+  if (!mathfield.value) return;
+
+  // Get LaTeX from mathfield
+  const latexInput = mathfield.value.getValue("latex");
+
+  // Parse LaTeX → AST
+  const expr = ce.parse(latexInput);
+
+  console.log("LaTeX input:", latexInput);
+  console.log("Parsed AST:", expr.json);
+
+  output.value = JSON.stringify(expr.json, null, 2);
+}
 </script>
 
-<style scoped>
-.output {
-  margin-top: 8px;
+<style>
+button {
+  padding: 0.5em 1em;
+  border: none;
+  background: #4caf50;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+button:hover {
+  background: #45a049;
 }
 </style>
