@@ -110,7 +110,7 @@ export default defineComponent({
               
               title: {
                 display: true,
-                text: "Zeit in h",
+                text: "Zeit",
                 font: {
                         size: 20
                       }

@@ -259,7 +259,20 @@
                 }
                 else showNotify("Parmeter anlegen", `Das Parameter ${inputValue} wurde nicht erfolgreich angelegt.`,"error");
             }
+            const parseFormula = () =>{
+                if (!mathfield.value) return;
 
+                // Get LaTeX from mathfield
+                const latexInput = mathfield.value.getValue("latex");
+
+                // Parse LaTeX → AST
+                const expr = ce.parse(latexInput);
+
+                console.log("LaTeX input:", latexInput);
+                console.log("Parsed AST:", expr.json);
+
+                output.value = JSON.stringify(expr.json, null, 2);
+            }
             onMounted(() => {
                 watch(formelInput, (el) => {
                     if (el) {

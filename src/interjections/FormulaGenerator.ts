@@ -262,4 +262,28 @@ const ASTParser = (abstractSyntaxTree: AbstractSyntaxTree, variableTable: IVaria
   return expressionHandler[operation](operation, leftSubtree, rightSubtree);
 };
 
+
+const extractVariablesAndConstants = (ast: IParsedTree) => {
+  const variables: string[] = [];
+  const constants: number[] = [];
+
+  const traverse = (node: any) => {
+    if (Array.isArray(node)) {
+      node.forEach((child) => traverse(child));
+    } else if (typeof node === "object" && node !== null) {
+      if (node.type === "variable") {
+        if (!variables.includes(node.name)) variables.push(node.name);
+      } else if (node.type === "scalar" && node.valueType === "constant") {
+        if (!constants.includes(node.value)) constants.push(node.value);
+      }
+      Object.values(node).forEach((child) => traverse(child));
+    }
+  };
+
+  traverse(ast);
+
+  console.log("🔹 Variables found:", variables);
+  console.log("🔹 Constants found:", constants);
+};
+
 export { formulaGenerator as formulaGenerator, mathlex };
