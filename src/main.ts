@@ -23,14 +23,13 @@ import PlanGraph from "@/components/taskComponents/scheduling/PlanGraph.vue";
 import EditableGraph from "@/components/taskComponents/EditableGraph.vue";
 import GanttDiagram from "@/components/taskComponents/scheduling/GanttDiagram.vue";
 import ManipulatableGraph from "@/components/taskComponents/ManipulatableGraph/ManipulatableGraph.vue";
-/* for LatexFormula.vue 
-import * as MathLive from "mathlive";
-import MathfieldComponent from "@/lib/vue-mathlive.mjs";
-*/
+
+import Notifications from '@kyvg/vue3-notification'
 
 
 const app = createApp(App);
 app.use(store).use(router).use(VTooltip);
+app.use(Notifications);
 app
   .component("Matrix", TaskConfiguration)
   .component("DOTGraph", DOTGraph)
