@@ -1,5 +1,6 @@
 <template>
   <div class="canvas">
+    <notifications/>
     <Navigation :storeObject="storeObject" />
     <Hint :storeObject="storeObject" />
 
@@ -102,6 +103,8 @@ import BackendFormular from "@/components/taskComponents/BackendFormular.vue";
 import TaskViewer from "@/components/taskComponents/TaskViewer.vue";
 import CheckboxGroup from "@/components/taskComponents/CheckboxGroup.vue";
 import LatexFormula from "@/components/taskComponents/LatexFormula.vue";
+
+
 export default {
   name: "Canvas",
   components: {
@@ -379,6 +382,13 @@ export default {
   height: 100%;
   overflow: auto;
 }
+
+.vue-notification-group {
+  width: 25% !important;
+  top: 10% !important;
+}
+
+
 </style>
 
 <style>
