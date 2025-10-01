@@ -1,51 +1,64 @@
 <template>
     <div class="container">
         <div v-if="showLatexModal" class="custom-modal-overlay">
-        <div class="modal-latex-editor">
-            <div class="latex-section">
-            <fieldset class="latex-section-item">
-                <legend ><h3>Bitte wählen Sie die gewünschte Eingabe : </h3></legend>
-                <select name="inputEditor" id="selectedEditor" v-model="selectedEditor" style="font-size: larger;">
-                <option value="">Bitte auwählen</option>
-                <option value="latex">Latex Eingabe</option>
-                <option value="formel">Formel Eingabe</option>
-                </select>
-            </fieldset>
-            <div class="latex-section" v-if="formelInputVisible">
-            <div class="latex-section-item">
-                <h4>Formel-Eingabe:</h4>
-                <math-field
-                    class="mathField inputField"
-                    ref="formelInput"
-                    :options="{ smartFence: false,virtualKeyboardMode: 'onfocus'}"
-                >
-                </math-field>
-            </div>
-            <div class="latex-section-item">
-                <h4>LaTex-Vorschau:</h4>
-                <textarea type="text" class="mathField previewField" readonly v-model="formelInputPreview"></textarea>
-            </div>
-            </div>
-            <div class="latex-section" v-if="latexInputVisible">
-            <div class="latex-section-item">
-                <h4>LaTex-Eingabe:</h4>
-                <textarea class="mathField inputField" placeholder="\frac{\left(\sum_0^{n}\frac{v_{i}}{...}" 
-                    v-model="laTexInput" 
-                    @input="updateLatexPreview"
-                    ></textarea>
-            </div>
-            <div class="latex-section-item">
-                <h4>Formel-Vorschau:</h4>
-                <math-field
-                    class="mathField previewField"
-                    ref="laTexInputPreview"
-                    smart-fence="false"
-                    virtual-keyboard-policy="off"
-                ></math-field>
-            </div>
-            </div>
-            <button @click="resetLatexModal" style="width: 30%;">fertig!</button>
-            </div>
+  <div class="modal-latex-editor">
+    <div class="latex-section">
+      <fieldset class="latex-section-item">
+        <legend><h3>Bitte wählen Sie die gewünschte Eingabe :</h3></legend>
+        <select name="inputEditor" id="selectedEditor" v-model="selectedEditor" style="font-size: larger;">
+          <option value="">Bitte auswählen</option>
+          <option value="latex">Latex Eingabe</option>
+          <option value="formel">Formel Eingabe</option>
+        </select>
+      </fieldset>
+
+      <!-- Formel input -->
+      <div class="latex-section" v-if="formelInputVisible">
+        <div class="latex-section-item">
+          <h4>Formel-Eingabe:</h4>
+          <math-field
+            class="mathField inputField"
+            ref="formelInput"
+            :options="{ smartFence: false, virtualKeyboardMode: 'onfocus' }"
+          ></math-field>
+        </div>
+        <div class="latex-section-item">
+          <h4>LaTex-Vorschau:</h4>
+          <textarea class="mathField previewField" readonly v-model="formelInputPreview"></textarea>
+        </div>
+      </div>
+
+      <!-- LaTeX input -->
+      <div class="latex-section" v-if="latexInputVisible">
+        <div class="latex-section-item">
+          <h4>LaTex-Eingabe:</h4>
+          <textarea
+            class="mathField inputField"
+            placeholder="\frac{\left(\sum_0^{n}\frac{v_{i}}{...}"
+            v-model="laTexInput"
+            @input="updateLatexPreview"
+          ></textarea>
+        </div>
+        <div class="latex-section-item">
+          <h4>Formel-Vorschau:</h4>
+          <math-field
+            class="mathField previewField"
+            ref="laTexInputPreview"
+            smart-fence="false"
+            virtual-keyboard-policy="off"
+          ></math-field>
+        </div>
+
+        <!-- BEN-->
+        <div class="latex-section-item" v-if="output">
+          <h4>Parsed AST:</h4>
+          <pre>{{ output }}</pre>
+        </div>
+      </div>
+
+      <button @click="resetLatexModal" style="width: 30%;">fertig!</button>
+    
+       </div>
         </div>
         </div>
         <div class="inputs-section">
@@ -88,6 +101,10 @@
     import { notify } from "@kyvg/vue3-notification";
     import { isNumber } from 'lodash';
 
+    // BEN
+    import { ComputeEngine } from '@cortex-js/compute-engine';
+
+
 
     export default defineComponent({
         props: {
@@ -112,6 +129,10 @@
             let selectedEditor              = ref<string>("");
             let latexInputVisible           = ref<boolean>(false);
             let formelInputVisible          = ref<boolean>(false);
+
+            // BEN
+            const ce = new ComputeEngine();
+            const output = ref<string>("");
 
             watch(selectedEditor, () => {
                 switch(selectedEditor.value.toLowerCase()){
@@ -259,20 +280,31 @@
                 }
                 else showNotify("Parmeter anlegen", `Das Parameter ${inputValue} wurde nicht erfolgreich angelegt.`,"error");
             }
-            const parseFormula = () =>{
-                if (!mathfield.value) return;
 
-                // Get LaTeX from mathfield
-                const latexInput = mathfield.value.getValue("latex");
+            //BEN
+            const parseFormula = (latex: string) => {
+                if (!latex || latex.length === 0) return;
 
-                // Parse LaTeX → AST
-                const expr = ce.parse(latexInput);
+                const expr = ce.parse(latex);
 
-                console.log("LaTeX input:", latexInput);
+                console.log("LaTeX input:", latex);
                 console.log("Parsed AST:", expr.json);
 
                 output.value = JSON.stringify(expr.json, null, 2);
-            }
+            };
+
+            //BEN
+            watch(laTexInput, (newVal) => {
+                if (newVal && newVal.length > 0) {
+                    parseFormula(newVal.toString());
+                }
+            });
+
+            watch(formelInputPreview, (newVal) => {
+                if (newVal && newVal.length > 0) {
+                    parseFormula(newVal.toString());
+                }
+            });
             onMounted(() => {
                 watch(formelInput, (el) => {
                     if (el) {
@@ -308,7 +340,9 @@
                 formelInputVisible,
                 latexInputVisible,
                 resetLatexModal,
-                toggleReadOnly
+                toggleReadOnly,
+                // BEN
+                output
             };
         }
     });
