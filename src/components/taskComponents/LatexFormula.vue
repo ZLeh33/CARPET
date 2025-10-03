@@ -50,10 +50,7 @@
         </div>
 
         <!-- BEN-->
-        <div class="latex-section-item" v-if="output">
-          <h4>Parsed AST:</h4>
-          <pre>{{ output }}</pre>
-        </div>
+      
       </div>
 
       <button @click="resetLatexModal" style="width: 30%;">fertig!</button>
@@ -282,15 +279,19 @@
             }
 
             //BEN
-            const parseFormula = (latex: string) => {
-                if (!latex || latex.length === 0) return;
+           const parseFormula = (latex: string) => {
+            if (!latex || latex.length === 0) return;
 
-                const expr = ce.parse(latex);
+            const expr = ce.parse(latex);
 
-                console.log("LaTeX input:", latex);
-                console.log("Parsed AST:", expr.json);
+            // Extract elements without operators
+            const symbols = Array.from(expr.symbols ?? []);
+          
 
-                output.value = JSON.stringify(expr.json, null, 2);
+            console.log("LaTeX input:", latex);
+            console.log("Parsed symbols:", symbols);
+            
+            output.value = JSON.stringify({ symbols }, null, 2);
             };
 
             //BEN
@@ -300,6 +301,7 @@
                 }
             });
 
+            //BEN
             watch(formelInputPreview, (newVal) => {
                 if (newVal && newVal.length > 0) {
                     parseFormula(newVal.toString());
