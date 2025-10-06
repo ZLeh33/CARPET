@@ -53,7 +53,7 @@
       
       </div>
 
-      <button @click="resetLatexModal" style="width: 30%;">fertig!</button>
+      <button @click="parseFormula();resetLatexModal()" style="width: 30%;">fertig!</button>
     
        </div>
         </div>
@@ -84,7 +84,7 @@
             <div class="modal-params">
                 <label for="newParameter" style="font-size: larger;">Geben Sie das neue Parameter  ein : </label>
                 <input type="text" id="newParameter" placeholder="Eingabe hier" style="width: 50%; font-size: larger; text-align: center;">
-                <button @click="handleAddParameter">Fertig!</button>
+                <button @click="handleAddParameter()">Fertig!</button>
             </div>
         </div>
     </div>
@@ -116,7 +116,7 @@
             const formelInput               = ref<any>(null);
             const formelInputPreview        = ref<string>("");
             const formula                   = ref("");
-            const laTexInput                = ref<String | null>("");
+            const laTexInput                = ref<string>("");
             const laTexInputPreview         = ref<HTMLElement | null>(null);
             const selectOptions             = ref(['Bitte auswaehlen','Constant', 'Vom Pfad initialisieren', 'Funktion Aufruf', 'LaTex-Formel']);
             
@@ -126,7 +126,7 @@
             let selectedEditor              = ref<string>("");
             let latexInputVisible           = ref<boolean>(false);
             let formelInputVisible          = ref<boolean>(false);
-
+            let currentIndex                 = ref<number | null>(null);
             // BEN
             const ce = new ComputeEngine();
             const output = ref<string>("");
@@ -188,6 +188,7 @@
             const createInput = (inputTyp : string, inputIndex: number, readOnly : boolean) =>{
                 const inputId = 'inputForParameter'+ inputIndex;
                 const selectId = 'inputTypeSelect'+ inputIndex;
+                
                 if($('#'+inputId).length == 0){
                     const $input  = $('<input>')
                                     .attr('type',inputTyp)
@@ -195,6 +196,7 @@
                     if(readOnly)$input.prop('readonly', readOnly);
                     $input.addClass('form-element');
                     $input.insertAfter($('#'+selectId));
+                    console.log($('#'+inputId));
                 }else{
                     $('#'+inputId).attr('type',inputTyp);
                 }
@@ -209,27 +211,11 @@
                 const inputId = 'inputForParameter'+ inputIndex;
                 $('#'+inputId).val(value);
             }
-            const onLatexFormulaOptionSelected = (index : number) => {
-                showLatexModal.value = true;
-                watch(laTexInput, (newVal) => {
-                    if (newVal && newVal.length > 0) {
-                        createInput('text', index, false);
-                        setValueForInputByIndex(index, newVal);
-                    }
-                });
-
-                watch(formelInputPreview, (newVal) => {
-                    if (newVal && newVal.length > 0) {
-                        createInput('text', index, false);
-                        setValueForInputByIndex(index, newVal);
-                    }
-                });
-            }
+            
             const onInputTypeSelected = (event : Event, index: number) =>{
                 const target = event.target as HTMLSelectElement;
                 const selectId : string  = target.id;
                 const value = target.value;
-                
                 
                 deleteInputByIndex(index);
 
@@ -240,7 +226,8 @@
                                     break;
                     case 'funktion aufruf'  : createInput('text',index, false);
                                     break;
-                    case 'latex-formel' : onLatexFormulaOptionSelected(index);
+                    case 'latex-formel' : currentIndex.value = index;
+                                            showLatexModal.value = true;
                                         break;
                     case 'bitte auswaehlen' : 
                                             deleteInputByIndex(index);
@@ -281,34 +268,36 @@
             }
 
             //BEN
-           const parseFormula = (latex: string) => {
-            if (!latex || latex.length === 0) return;
+            const parseFormula = (latex: string = "") => {
+                
+                const formel = latex || laTexInput.value || formelInputPreview.value || "";
+                
+                if (!formel || formel.length === 0) return;
+                else {
+                    createInput('text', Number(currentIndex.value), false);
+                    setValueForInputByIndex(Number(currentIndex.value), formel);
+                    currentIndex.value =  null;
+                    laTexInput.value    =   "";
+                    formelInput.value   =   null;
+                    laTexInputPreview.value     = null;
+                    formelInputPreview.value    =   "";
+                }
+                const expr = ce.parse(formel);
 
-            const expr = ce.parse(latex);
-
-            // Extract elements without operators
-            const symbols = Array.from(expr.symbols ?? []);
-          
-
-            console.log("LaTeX input:", latex);
-            console.log("Parsed symbols:", symbols);
+                // Extract elements without operators
+                const symbols = Array.from(expr.symbols ?? []);
             
-            output.value = JSON.stringify({ symbols }, null, 2);
+
+                console.log("LaTeX input:", formel);
+                console.log("Parsed symbols:", symbols);
+
+                symbols.forEach(sym => {
+                    handleAddParameter(sym.toString())
+                });
+                output.value = JSON.stringify({ symbols }, null, 2);
             };
 
-            //BEN
-            watch(laTexInput, (newVal) => {
-                if (newVal && newVal.length > 0) {
-                    parseFormula(newVal.toString());
-                }
-            });
-
-            //BEN
-            watch(formelInputPreview, (newVal) => {
-                if (newVal && newVal.length > 0) {
-                    parseFormula(newVal.toString());
-                }
-            });
+            
             onMounted(() => {
                 watch(formelInput, (el) => {
                     if (el) {
@@ -345,6 +334,7 @@
                 latexInputVisible,
                 resetLatexModal,
                 toggleReadOnly,
+                parseFormula,
                 // BEN
                 output
             };
