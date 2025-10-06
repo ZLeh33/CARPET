@@ -262,20 +262,22 @@
                 }
             }
             
-            const handleAddParameter = () =>{
+            const handleAddParameter = (newParameter : string = "") =>{
                 addParameter.value = false;
-                const inputValue : string = String($('#newParameter').val());
+                let param : string = "";
+                if (newParameter.length > 0) param = newParameter;
+                else param = String($('#newParameter').val());
                 let check = false;
-                if(inputValue.length > 0){
-                    if(!parameterListe.value.includes(inputValue)){
-                        parameterListe.value.push(inputValue);
+                if(param.length > 0){
+                    if(!parameterListe.value.includes(param)){
+                        parameterListe.value.push(param);
                         check = true;
                     }
                 }
                 if(check){
-                    showNotify("Parmeter anlegen", `Das Parameter ${inputValue} wurde erfolgreich angelegt.`,"success");
+                    showNotify("Parmeter anlegen", `Das Parameter ${param} wurde erfolgreich angelegt.`,"success");
                 }
-                else showNotify("Parmeter anlegen", `Das Parameter ${inputValue} wurde nicht erfolgreich angelegt.`,"error");
+                else showNotify("Parmeter anlegen", `Das Parameter ${param} wurde nicht erfolgreich angelegt.`,"error");
             }
 
             //BEN
