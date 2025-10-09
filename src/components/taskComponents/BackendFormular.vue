@@ -1,6 +1,6 @@
 <template>
   <div class="parameter_form">
-    <div class="parameter_form_columns">
+    <div v-if="elements" class="parameter_form_columns">
       <div class="parameter_labels">
         <p
           v-for="(element, key) in elements"
@@ -22,7 +22,7 @@
         />
       </div>
     </div>
-    <ActionButtons :actions="actions" :actionTypes="actionTypes" />
+    <ActionButtons :actions="actions" :actionTypes="actionTypes"/>
   </div>
 </template>
 
@@ -36,6 +36,8 @@ import DualSlider from "@/components/taskComponents/form/DualSlider.vue";
 import ActionButtons from "@/components/taskComponents/mixins/ActionButtons.vue";
 import * as fs from 'fs';
 import * as path from 'path';
+import { boolean } from "mathjs";
+import { get } from "lodash";
 
 export default {
   props: {
@@ -74,6 +76,7 @@ export default {
     });
 
     const elements = computed(() => getProperty(`${path}__component__form`));
+    
     const saveFetchedDataInTemplate_Path : any | null = computed(() => getProperty(`${path}__component__saveFetchedDataInTemplate_Path`));
     //console.log(saveFetchedDataInTemplate_Path.value);
     const saveFetchData = async (payload: object) => {
@@ -108,7 +111,18 @@ export default {
       updateActions();
     };
 
-    let actions = ref(getProperty(`${path}__component__actions`));
+    let actions = computed( () => getProperty(`${path}__component__actions`));
+    watch(actions, (newActions) => {
+      newActions.forEach((action: any) => {
+        const val = action.disabled;
+        if (typeof val === 'string') {
+          const computedDisabled = computed(() => getProperty(val));
+          watch(computedDisabled, (newVal) => {
+            action.disabled = newVal;
+          }, { immediate: true });
+        }
+      });
+    }, { deep: true, immediate: true });
 
     const updateActions = () => {
       return true;
@@ -171,7 +185,7 @@ export default {
       fetchData
     };
 
-    return { elements, updateElement, actions, actionTypes };
+    return { elements, updateElement, actions, actionTypes};
   }
 };
 </script>
