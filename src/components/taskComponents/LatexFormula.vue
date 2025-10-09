@@ -96,7 +96,7 @@
     import 'mathlive';
     import $, { event } from 'jquery';
     import { notify } from "@kyvg/vue3-notification";
-    import { isNumber } from 'lodash';
+    import { get, isNumber } from 'lodash';
 
     // BEN
     import { ComputeEngine } from '@cortex-js/compute-engine';
@@ -127,6 +127,15 @@
             let latexInputVisible           = ref<boolean>(false);
             let formelInputVisible          = ref<boolean>(false);
             let currentIndex                 = ref<number | null>(null);
+
+            watch(parameterListe.value, (newListe) => {
+                if(newListe.length > 0){
+                    setProperty({ path: `${componentPath.value}__generateBtnDisabled`, value: false });
+                }
+                else{
+                    setProperty({ path: `${componentPath.value}__generateBtnDisabled`, value: true });
+                }
+            });
             // BEN
             const ce = new ComputeEngine();
             const output = ref<string>("");
