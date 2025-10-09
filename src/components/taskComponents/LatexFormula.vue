@@ -229,7 +229,7 @@
                 deleteInputByIndex(index);
 
                 switch(value.toLowerCase()){
-                    case 'constant' : createInput('number',index , false);
+                    case 'constant' : createInput('text',index , false);
                                     break;
                     case 'vom pfad initialisieren' : createInput('text',index, false);
                                     break;
