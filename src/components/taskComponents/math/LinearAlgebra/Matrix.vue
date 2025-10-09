@@ -15,7 +15,6 @@
               <p  v-else class="matrix_label row_label"> {{ rowLabel[i]  }}</p>
             </th>
             <td class="matrix_element" v-for="(element, j) in userData[i]" :key="j">
-              <!-- zakaria min max-->
               <MatrixField
                 :min="getMinValueForColumn(columnLabel[j])"
                 :max="getMaxValueForColumn(columnLabel[j])"
@@ -705,6 +704,7 @@ export default {
 
 .matrix-wrapper {
   width: 100%;
+  height: 100%;
   max-height: calc(100% - 30px); /* Höhe der Tabelle kann angepasst werden */
   overflow: auto; /* Scrollbars erscheinen, wenn der Inhalt größer als der Container ist */
   border: 1px solid #ccc;
@@ -719,7 +719,7 @@ input::-webkit-inner-spin-button {
 .matrix {
   width: 100%;
   height: 100%;
-  min-height: 55vh;
+  min-height: 40vh;
   border-collapse: collapse;
   table-layout: fixed;
 }
@@ -734,6 +734,7 @@ input::-webkit-inner-spin-button {
   top: 0px;
   position: absolute;
   width: 100%;
+  height: 100%;
   min-height: 100%;
   font-size: 130%;
   text-align: center;
@@ -744,8 +745,13 @@ th {
   border: 2px solid black;
   background: #57636b;
   color: #b1b2b4;
+  text-align: center;
+  vertical-align: middle;
 }
-
+.matrix td,
+.matrix th {
+  min-height: 90px !important;
+}
 .matrix_label {
   font-size: 130%;
   width: 100%;
@@ -759,10 +765,13 @@ th {
    text-orientation: upright; */
   /* transform: rotate(180deg); */
   display: flex;
-  /* align-items: center; */
+ align-items: center;
 }
 
 .row_label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-width: fit-content;
   margin: 0 auto;
 }
@@ -777,5 +786,9 @@ th {
 
 input[disabled] {
   background: lightgrey;
+}
+
+.matrix * {
+  min-height: 90px !important;
 }
 </style>
