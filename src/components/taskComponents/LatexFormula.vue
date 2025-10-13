@@ -128,6 +128,18 @@
             let formelInputVisible          = ref<boolean>(false);
             let currentIndex                 = ref<number | null>(null);
 
+            const userData = ref<Record<string, UserData>>({})
+            interface UserData {
+                inputType : string;
+                value : string;
+            }
+            const createEmptyUserDataObject = () : UserData => {
+                return {
+                    inputType : "",
+                    value : ""
+                }
+            } 
+
             watch(parameterListe.value, (newListe) => {
                 if(newListe.length > 0){
                     setProperty({ path: `${componentPath.value}__generateBtnDisabled`, value: false });
@@ -252,6 +264,7 @@
                 if(parameter && parameter.length > 0){
                     if(parameterListe.value.includes(parameter)){
                         parameterListe.value.splice(parameterListe.value.indexOf(parameter),1);
+                        delete userData.value[parameter];
                         showNotify("Parameter löschen",`Das Parameter ${parameter} wurde gelöscht` , "success");
                         console.log(`The Parameter: ${parameter} has been deleted`);
                     }
@@ -267,6 +280,7 @@
                 if(param.length > 0){
                     if(!parameterListe.value.includes(param)){
                         parameterListe.value.push(param);
+                        userData.value[param] = createEmptyUserDataObject();
                         check = true;
                     }
                 }
@@ -306,6 +320,9 @@
                 output.value = JSON.stringify({ symbols }, null, 2);
             };
 
+            watch(userData.value, (newUserData) => {
+                console.log(newUserData);
+            });
             
             onMounted(() => {
                 watch(formelInput, (el) => {
