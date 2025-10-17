@@ -136,38 +136,45 @@ export default {
     };
 
     const preparePayload = (instruction) => {
-      const parameters: { [key: string]: any } = Object.entries(elements.value).reduce(
-        (parameters, [name, parameter]: [string, { [key: string]: any }]) => {
-          const { formType, initial } = parameter;
-          let payload = { ...parameters, [name]: initial };
-          if (formType === "RangeFormField") payload[name] = [initial.lowerValue, initial.upperValue];
-          if (formType === "ValueFormField") payload[name] = parameter.value;
-          const dataPfad = computed(() => `${path}__component__data`);
-          if (dataPfad != null) {
-            const data = computed(() => getProperty(`${path}__component__data`));
-            console.log(data);
-            Object.entries(data.value).forEach(([key, valuePath]) => {
-              console.log(valuePath);
-              if(typeof valuePath === 'object')payload[key] = valuePath;
-              else {
-                const value = getProperty(valuePath);
-                payload[key] = value;
-              }
-              console.log(payload);
-            });
-          }
+      const payload = {};
+      const dataPath = `${path}__component__data`;
+      const data = getProperty(dataPath);
 
-          return payload;
-        },
-        {}
-      );
-      const payload: { [key: string]: any } = { parameters };
+      if (elements.value) {
+        const parameters = {};
+
+        for (const [name, parameter] of Object.entries(elements.value)) {
+          const { formType, initial, value } = parameter;
+
+          if (formType === "RangeFormField") {
+            parameters[name] = [initial.lowerValue, initial.upperValue];
+          } else if (formType === "ValueFormField") {
+            parameters[name] = value;
+          } else {
+            parameters[name] = initial;
+          }
+        }
+
+        payload.parameters = parameters;
+      }
+
+      if (data) {
+        for (const [key, valuePath] of Object.entries(data)) {
+          if (typeof valuePath === "object") {
+            payload[key] = valuePath;
+          } else {
+            payload[key] = getProperty(valuePath);
+          }
+        }
+      }
       payload.type = currentTask.value;
       payload.task = currentTask.value;
       payload.instruction = instruction;
 
-      return payload;
+      console.log("FINAL PAYLOAD:", payload);
+      return payload; 
     };
+
 
     const currentTask = computed(() => getProperty("currentTask"));
 
