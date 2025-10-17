@@ -48,8 +48,6 @@
             virtual-keyboard-policy="off"
           ></math-field>
         </div>
-
-        <!-- BEN-->
       
       </div>
 
@@ -128,11 +126,13 @@
             let formelInputVisible          = ref<boolean>(false);
             let currentIndex                 = ref<number | null>(null);
 
-            const userData = ref<Record<string, UserData>>({})
+            const userData = ref<Record<string, UserData>>({});
+
             interface UserData {
                 inputType : string;
                 value : string;
             }
+            
             const createEmptyUserDataObject = () : UserData => {
                 return {
                     inputType : "",
@@ -147,6 +147,10 @@
                 else{
                     setProperty({ path: `${componentPath.value}__generateBtnDisabled`, value: true });
                 }
+            });
+            watch(userData.value, (newUserData) => {
+                    setProperty({ path: `${componentPath.value}__userData`, value: newUserData});
+                    //console.log(getProperty(`${componentPath.value}__userData`));
             });
             // BEN
             const ce = new ComputeEngine();
@@ -217,7 +221,13 @@
                     if(readOnly)$input.prop('readonly', readOnly);
                     $input.addClass('form-element');
                     $input.insertAfter($('#'+selectId));
-                    console.log($('#'+inputId));
+
+                    $input.on('change', function () {
+                        console.log($(this).val());
+                        const param = parameterListe.value[inputIndex];
+                        userData.value[param].value = String($(this).val());
+                        userData.value[param].inputType = String($(this).attr('type'));
+                    });
                 }else{
                     $('#'+inputId).attr('type',inputTyp);
                 }
@@ -319,10 +329,6 @@
                 });
                 output.value = JSON.stringify({ symbols }, null, 2);
             };
-
-            watch(userData.value, (newUserData) => {
-                console.log(newUserData);
-            });
             
             onMounted(() => {
                 watch(formelInput, (el) => {
